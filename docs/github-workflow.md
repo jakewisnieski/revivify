@@ -45,10 +45,10 @@ Status for **this** repo (`github.com/jakewisnieski/revivify`):
 |---|---|---|---|
 | 1 | **README** — what it is, how to run, current status | The front door reviewers see | ✅ Done |
 | 2 | **`.gitignore`** covers secrets & build junk | How you avoid committing API keys / `node_modules` | ✅ Done — `.env*`, `dist/`, `node_modules/` all ignored |
-| 3 | **Branch protection on `main`** (Settings → Branches): require a PR, require status checks to pass | Forces the SDLC gate — no accidental dumps onto `main` | ⬜ Not yet |
+| 3 | **Branch protection on `main`** (a ruleset): require a PR, block force-push & deletion, no bypass | Forces the SDLC gate — no accidental dumps onto `main` | ✅ Done — active ruleset, `current_user_can_bypass: never` |
 | 4 | **Project board** (Todo / In Progress / Review / Done) linked to the repo | Makes the plan visible | ⬜ Not yet |
 | 5 | **Issue templates** (`.github/ISSUE_TEMPLATE/`) — a Feature and a Bug template | Every issue is structured — great for a portfolio | ⬜ Not yet |
-| 6 | **CI workflow** (`.github/workflows/ci.yml`) — run `npm test` + `npm run typecheck` on every PR | Red = don't merge; the automated half of the gate | ⬜ Not yet |
+| 6 | **CI workflow** (`.github/workflows/ci.yml`) — run `npm test` + `npm run typecheck` on every PR | Red = don't merge; the automated half of the gate | ✅ Done — `test` job; required check on `main` |
 
 Items 3–6 are the concrete setup that turns this document from aspiration into an enforced process. See **[Where we are today](#where-we-are-today--the-transition)**.
 

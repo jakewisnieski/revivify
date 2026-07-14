@@ -1,0 +1,31 @@
+name: CI
+
+# The automated half of the review gate (docs/github-workflow.md, step 4):
+# every PR to main must be green here before it can merge.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels an in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22 # LTS; the test runner needs Node 21+ to expand the "src/**/*.test.ts" glob
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test

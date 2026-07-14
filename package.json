@@ -1,0 +1,32 @@
+{
+  "name": "revivify",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A quality gate that helps non-developers ship real-quality landing pages built with AI — enforcing citable best practices (WCAG 2.2, Core Web Vitals, Google Search Essentials).",
+  "type": "module",
+  "bin": {
+    "revivify": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "check": "tsx src/cli.ts check",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
+  },
+  "license": "MIT",
+  "dependencies": {
+    "node-html-parser": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  }
+}

@@ -142,10 +142,11 @@ Four pillars implement one tiny lifecycle: **goal → build-with-guardrails → 
 | Milestone | Deliverable | Proves |
 |---|---|---|
 | **M0 — Walking skeleton** | CLI scaffold; `revivify check` runs a handful of static HTML checks end-to-end with dual output + a trust score | The architecture works end-to-end |
-| **M1 — Validate pillar** | axe-core + Lighthouse wired; all **15 Tier-1 rules**; full trust-score rollup with applicability | The core value is real and cited |
-| **M2 — Init + guardrails + hook** | `revivify init` + rules pack + plan + `.revivify.yaml` + Claude Code hook gating "done" | Proactive steering + deterministic gate |
-| **M3 — Check UX** | Intent capture, three-way triage, own-the-fix loop, educational citations, plain-language report | It works *for a non-developer* |
-| **M4 — Demo + polish** | Seeded-violation demo site, README walkthrough (GIF), docs | It's credible and demonstrable in an interview |
+| **M1 — Validate pillar** | axe-core + Lighthouse wired; Tier-1 rules; full trust-score rollup with applicability | The core value is real and cited |
+| **M2 — Cockpit (visual UI)** | `revivify ui` — a local web app that streams the audit live (gauges, checks, trust dial) *(inserted; see decision log #11)* | The non-dev can *see* the verdict, not take it on faith |
+| **M3 — Init + guardrails + hook** | `revivify init` + rules pack + plan + `.revivify.yaml` + Claude Code hook gating "done" | Proactive steering + deterministic gate |
+| **M4 — Check UX** | Intent capture, three-way triage, own-the-fix loop, educational citations | It works *for a non-developer* |
+| **M5 — Demo + polish** | Seeded-violation demo site, README walkthrough (GIF), docs | It's credible and demonstrable in an interview |
 
 ## 11. Risks & open questions
 

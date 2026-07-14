@@ -180,9 +180,34 @@ function verdictFor(audit: LighthouseAudit | undefined): Verdict {
   return audit.score >= 0.9 ? "pass" : "fail";
 }
 
+/** True when the audited page was served from loopback (or a file) rather than a real host. */
+function isLocalUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return host === "127.0.0.1" || host === "localhost" || host === "::1" || host === "";
+  } catch {
+    return true;
+  }
+}
+
 /** Map a Lighthouse report into our cited, plain-language findings. */
 export function mapReportToFindings(report: LighthouseReport): Finding[] {
+  const local = isLocalUrl(report.finalUrl);
   return LIGHTHOUSE_RULES.map((rule) => {
+    // HTTPS can't be judged from a locally-served page — browsers treat localhost as
+    // a secure context, so the audit always passes. Rather than show a meaningless
+    // green tick, report it as not-applicable; it's verified once the site is deployed.
+    if (rule.id === "https" && local) {
+      return {
+        id: rule.id,
+        title: rule.title,
+        standard: rule.standard,
+        verdict: "not-applicable" as const,
+        triage: "just-so-you-know" as const,
+        detail:
+          "Can't be verified on a local page — browsers treat localhost as secure. Revivify checks HTTPS once your site is deployed to a real URL.",
+      };
+    }
     const audit = report.audits[rule.auditId];
     const verdict = verdictFor(audit);
     const measured = audit?.displayValue ? ` (measured: ${audit.displayValue})` : "";

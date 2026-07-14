@@ -7,13 +7,16 @@ import { renderHumanReport } from "../report/human.js";
 import { renderAgentReport } from "../report/agent.js";
 import type { Finding } from "../checks/types.js";
 import type { CheckOutput } from "../report/types.js";
+import type { ProgressFn } from "../engine/lighthouse.js";
 
 export interface CheckOptions {
   /** "full" runs the real Lighthouse audit (default); "fast" runs the instant static pre-check. */
   mode: "full" | "fast";
+  /** Optional progress reporter, so a UI can show the audit happening live. */
+  onProgress?: ProgressFn;
 }
 
-/** Build the check result for a page without rendering it (used by the CLI and the walkthrough). */
+/** Build the check result for a page without rendering it (used by the CLI, walkthrough, and UI). */
 export async function check(path: string, options: CheckOptions): Promise<CheckOutput> {
   if (options.mode === "fast") {
     const page = await loadPage(path);
@@ -26,7 +29,8 @@ export async function check(path: string, options: CheckOptions): Promise<CheckO
     return { path: page.path, mode: "fast", findings, score: scoreFindings(findings) };
   }
 
-  const report = await runLighthouse(path);
+  const report = await runLighthouse(path, { onProgress: options.onProgress });
+  options.onProgress?.({ phase: "done", message: "Scoring the results…" });
   const findings = mapReportToFindings(report);
   return {
     path,

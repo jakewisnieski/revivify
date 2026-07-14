@@ -8,7 +8,8 @@
     "revivify": "dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "web"
   ],
   "engines": {
     "node": ">=20"
@@ -17,6 +18,7 @@
     "build": "tsc",
     "dev": "tsx src/cli.ts",
     "check": "tsx src/cli.ts check",
+    "ui": "tsx src/cli.ts ui",
     "walkthrough": "tsx scripts/walkthrough.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"src/**/*.test.ts\""

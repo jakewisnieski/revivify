@@ -18,7 +18,7 @@ function report(overrides: Record<string, LighthouseAudit> = {}): LighthouseRepo
   return {
     categories: { performance: 1, accessibility: 1, seo: 1, "best-practices": 1 },
     audits: { ...audits, ...overrides },
-    finalUrl: "http://localhost/",
+    finalUrl: "https://example.com/", // non-local, so the HTTPS rule applies
   };
 }
 
@@ -74,4 +74,11 @@ test("an accidental noindex is a failing 'your call' finding", () => {
   );
   assert.equal(f.verdict, "fail");
   assert.equal(f.triage, "your-call");
+});
+
+test("HTTPS is not-applicable for a locally-served page (localhost counts as secure)", () => {
+  const localReport = { ...report(), finalUrl: "http://127.0.0.1:4123/" };
+  assert.equal(byId(mapReportToFindings(localReport), "https").verdict, "not-applicable");
+  // …but it applies for a real deployed URL:
+  assert.equal(byId(mapReportToFindings(report()), "https").verdict, "pass");
 });

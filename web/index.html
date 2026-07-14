@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Revivify — cockpit</title>
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+          <rect x="18.2" y="9" width="2.6" height="18" rx="1.3" fill="#8b7cf6" />
+          <rect x="12.5" y="16.6" width="8.7" height="2.3" rx="1.15" fill="#8b7cf6" />
+          <path d="M13.6 27 C13.4 22 14 18 15 14.6" stroke="#57c97e" stroke-width="2.7" stroke-linecap="round" fill="none" />
+          <path d="M14.6 16.4 C10.1 16 7.4 13.2 7.9 9.8 C11.7 10.3 14.1 12.8 14.6 16.4 Z" fill="#57c97e" />
+          <path d="M15 14.6 C15.8 10.9 18 9.1 21 9.7 C20.4 13.1 17.8 14.9 15 14.6 Z" fill="#69d891" />
+          <path d="M9 27.2 Q16 25.4 23 27.2" stroke="#3a4a41" stroke-width="1.8" stroke-linecap="round" fill="none" />
+        </svg>
+        Revivify
+      </div>
+      <div class="tagline">A landing page that lands, not just loads.</div>
+    </header>
+
+    <main>
+      <section class="controls card">
+        <label for="path">Page to check</label>
+        <div class="control-row">
+          <input id="path" type="text" spellcheck="false" placeholder="./examples/perfect (a folder or an .html file)" />
+          <label class="fast-toggle"><input id="fast" type="checkbox" /> fast pre-check</label>
+          <button id="run">Run check</button>
+        </div>
+        <p class="hint">The full check launches a real headless Chrome and runs Lighthouse (~30–45s). Watch it happen below.</p>
+      </section>
+
+      <!-- Live progress, shown while a check runs -->
+      <section id="live" class="card hidden">
+        <div class="live-head">
+          <span class="spinner" aria-hidden="true"></span>
+          <span id="live-status">Starting…</span>
+        </div>
+        <ul id="phases" class="phases"></ul>
+      </section>
+
+      <!-- Error -->
+      <section id="error" class="card error hidden"></section>
+
+      <!-- Results -->
+      <section id="results" class="hidden">
+        <div class="verdict card">
+          <div class="dial">
+            <div class="dial-num"><span id="score">–</span><span class="dial-den">/10</span></div>
+            <div id="passing" class="dial-sub">—</div>
+          </div>
+          <div class="verdict-text">
+            <div id="verdict-badge" class="badge">—</div>
+            <div id="verdict-note" class="verdict-note"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Where the score comes from — Lighthouse categories</h2>
+          <div id="gauges" class="gauges"></div>
+        </div>
+
+        <div class="card">
+          <h2>The checks <span id="checks-count" class="muted"></span></h2>
+          <ul id="rules" class="rules"></ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

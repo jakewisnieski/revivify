@@ -30,9 +30,9 @@ I'm not a developer. I build things with AI agents. Every time, I hit the same w
 
 ## Status
 
-🔨 **Building — M1 (the real engines) has landed.** `revivify check` now runs a full **Lighthouse** audit (with **axe-core** inside it for accessibility): **13 cited rules** across accessibility, performance, SEO, and best practices → a trust score → real category scores → dual output (structured for the agent, plain-language for you). Next: **M2** (`revivify init` + the Claude Code hook that gates "done"). Milestones live in the [PRD](docs/prd.md).
+🔨 **Building — M2 (a visual cockpit) has landed.** `revivify ui` opens a local web-app where you **watch the audit happen** — headless Chrome runs, the Lighthouse category gauges fill, each rule ticks to ✓/✗, and the trust dial lands on a score. It reuses the M1 engine and makes the verdict something you can *see*, not take on faith. `revivify check` still runs the same audit in the terminal. Next: **M3** (`revivify init` + the Claude Code hook that gates "done"). Milestones live in the [PRD](docs/prd.md).
 
-**What works now — `revivify check`:**
+**What works now — `revivify check` (the CLI; the cockpit shows the same, visually):**
 
 ```
 $ revivify check ./examples/starter-slop
@@ -40,7 +40,7 @@ Running the full audit (Lighthouse) — this takes ~30–45s…
 
 Revivify checked …/examples/starter-slop/index.html
 
-  Trust: 6/10 — 7 of 11 checks passing
+  Trust: 6/10 — 6 of 10 checks passing
   Lighthouse: Performance 100 · Accessibility 56 · Best Practices 96 · SEO 73
 
   ✗ Images have alt text
@@ -69,7 +69,8 @@ Requires Node ≥ 20.
 
 ```bash
 npm install
-npm run walkthrough                    # a narrated 2-minute tour (start here)
+npm run ui                             # ⭐ the visual cockpit — watch the audit happen
+npm run walkthrough                    # a narrated 2-minute tour
 npm run check -- ./examples/perfect    # full Lighthouse audit (~30–45s)
 npm run check -- ./examples/perfect --fast   # instant static pre-check (no browser)
 npm test                               # run the test suite
@@ -90,6 +91,6 @@ You don't need to read code to confirm Revivify works. Every milestone ships an 
 
 ## Architecture
 
-An **[AXI](https://axi.md/)-designed CLI** (`revivify`) in **Node / TypeScript**, wrapping **Lighthouse** (which runs **axe-core** for accessibility). The Claude Code hook that gates "done" arrives in M2. No MCP server — see the [decision log](docs/decision-log.md) for why.
+An **[AXI](https://axi.md/)-designed CLI** (`revivify`) in **Node / TypeScript**, wrapping **Lighthouse** (which runs **axe-core** for accessibility), plus a **local web-app cockpit** (`revivify ui`) that reuses the same engine. The Claude Code hook that gates "done" arrives in M3. No MCP server — see the [decision log](docs/decision-log.md) for why.
 
-Inside `src/`: `cli.ts` (entry) → `commands/check.ts` (orchestration; full vs `--fast`) → `engine/lighthouse.ts` (serves the page over loopback HTTP, drives headless Chrome, returns category scores + audits) → `checks/` (rule packs: `lighthouse.ts` maps audits to cited findings, `staticHtml.ts` is the fast pre-check) → `score.ts` (trust-score rollup) → `report/` (a plain-language channel for the human and a structured channel for the agent).
+Inside `src/`: `cli.ts` (entry) → `commands/check.ts` (orchestration; full vs `--fast`) and `commands/ui.ts` (serves the cockpit + streams the audit over SSE) → `engine/lighthouse.ts` (serves the page over loopback HTTP, drives headless Chrome, reports progress + category scores + audits) → `checks/` (rule packs: `lighthouse.ts` maps audits to cited findings, `staticHtml.ts` is the fast pre-check) → `score.ts` (trust-score rollup) → `report/` (a plain-language channel for the human and a structured channel for the agent). The cockpit's front-end lives in `web/`.

@@ -24,6 +24,18 @@ export interface LighthouseReport {
   finalUrl: string;
 }
 
+/** A coarse progress phase, so a UI can show what's happening in real time. */
+export interface ProgressEvent {
+  phase: "prepare" | "chrome" | "audit" | "done";
+  message: string;
+}
+
+export type ProgressFn = (event: ProgressEvent) => void;
+
+export interface RunOptions {
+  onProgress?: ProgressFn;
+}
+
 const CATEGORIES = ["performance", "accessibility", "seo", "best-practices"];
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -85,16 +97,24 @@ async function resolveSite(inputPath: string): Promise<{ dir: string; entry: str
  * Run Lighthouse against a local landing page and return the normalized report.
  * Serves the page over loopback HTTP, drives headless Chrome, then cleans up.
  */
-export async function runLighthouse(inputPath: string): Promise<LighthouseReport> {
+export async function runLighthouse(
+  inputPath: string,
+  options: RunOptions = {},
+): Promise<LighthouseReport> {
+  const progress = options.onProgress ?? (() => undefined);
+
+  progress({ phase: "prepare", message: "Preparing your page…" });
   const { dir, entry } = await resolveSite(inputPath);
   const server = await serveDirectory(dir);
   const url = `${server.origin}/${entry}`;
 
+  progress({ phase: "chrome", message: "Launching a headless Chrome browser…" });
   const chrome = await chromeLauncher.launch({
     chromeFlags: ["--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"],
   });
 
   try {
+    progress({ phase: "audit", message: "Auditing with Lighthouse (this takes ~30–45s)…" });
     const result = await lighthouse(url, {
       port: chrome.port,
       output: "json",

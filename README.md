@@ -62,6 +62,7 @@ The check exits `0` only at a perfect **10/10** (ship-ready) and non-zero otherw
 - [`docs/rule-catalog.md`](docs/rule-catalog.md) — the prioritized, cited rule set (15 MVP checks + roadmap)
 - [`docs/competitive-landscape.md`](docs/competitive-landscape.md) — how Revivify sits against existing tools
 - [`docs/decision-log.md`](docs/decision-log.md) — the key product & architecture decisions and their rationale
+- [`docs/github-workflow.md`](docs/github-workflow.md) — how we work: the SDLC / GitHub loop every change runs through (issue → branch → PR → gate → release)
 
 ## Run it locally
 

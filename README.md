@@ -32,6 +32,7 @@ I'm not a developer. I build things with AI agents. Every time, I hit the same w
 
 📋 **Spec complete — build starting.** This repo currently holds the product definition:
 
+- [`docs/prd.md`](docs/prd.md) — the product requirements (problem, users, metrics, scope, milestones)
 - [`docs/spec.md`](docs/spec.md) — the product spec
 - [`docs/rule-catalog.md`](docs/rule-catalog.md) — the prioritized, cited rule set (15 MVP checks + roadmap)
 - [`docs/competitive-landscape.md`](docs/competitive-landscape.md) — how Revivify sits against existing tools

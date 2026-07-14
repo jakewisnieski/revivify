@@ -25,3 +25,6 @@ Headline `X / 10` shown beside a concrete **"N of 15 checks passing,"** rolled u
 
 ### 8. Rule prioritization: 15 MVP / 5 fast-follow / 11 roadmap
 Ranked by (user impact) × (frequency in AI output) × (deterministically checkable) × (a non-dev can grasp it + the agent can fix it). The MVP deliberately includes every catastrophic-when-present check (e.g. accidental `noindex`, which makes a page invisible to Google). Full tiers in [`rule-catalog.md`](rule-catalog.md).
+
+### 9. Ship-ready bar = a perfect 10/10
+The gate clears only at **10/10** — every applicable check passing. A non-developer can't judge which remaining gap is the one that breaks their site, so any bar short of perfect leaves them wondering whether the leftover is the thing that matters. A perfect bar is the only threshold that lets them trust *nothing broken was left behind* — which is the whole promise. Two safeguards keep it fair rather than punishing: **non-applicable checks drop from the denominator** (a simple page isn't held to rules it can't violate), and **"your call" judgment items must be explicitly resolved** — fixed or knowingly accepted — so a deliberate brand choice doesn't trap the page below the bar. The threshold is configurable in `.revivify.yaml` but ships at 10/10.

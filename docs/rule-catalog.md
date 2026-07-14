@@ -4,6 +4,8 @@ The full set of checks the landing-page pack covers and grows into — every rul
 
 **Tier 1 = MVP (15)** · **Tier 2 = fast-follow (5)** · **Tier 3 = roadmap (11)**. Standards: **WCAG 2.2 Level A/AA** · **Core Web Vitals** · **Google Search Essentials**. ⏳ = fuzzy/interaction-based/higher-effort · 🧑 = often a "your call" judgment finding.
 
+> **Build status (M1):** 13 of the 15 Tier-1 rules are **live** via Lighthouse/axe. Two are **deferred, not faked** — non-text/UI contrast (1.4.11) and broken links / 404s have no trustworthy automatic check yet ([decision log #10](decision-log.md)). The trust score counts *applicable* rules ("N of M passing"), not a fixed 15.
+
 ## ♿ Accessibility — WCAG 2.2 (A/AA)
 
 | Rule (cited standard) | Why it matters | Tier |

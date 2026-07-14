@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="A leafy pothos plant">
+  <rect width="800" height="450" fill="#e8f5e9"/>
+  <circle cx="400" cy="225" r="130" fill="#66bb6a"/>
+  <text x="400" y="235" font-family="sans-serif" font-size="30" fill="#1b5e20" text-anchor="middle">Bloom</text>
+</svg>

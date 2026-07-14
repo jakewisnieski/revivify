@@ -1,5 +1,5 @@
-import type { Finding, Triage } from "../checks/types.js";
-import type { Score } from "../score.js";
+import type { Triage } from "../checks/types.js";
+import type { CheckOutput } from "./types.js";
 
 const TRIAGE_LABEL: Record<Triage, string> = {
   "well-fix-it": "We'll fix it",
@@ -7,13 +7,34 @@ const TRIAGE_LABEL: Record<Triage, string> = {
   "your-call": "Your call",
 };
 
+const CATEGORY_LABEL: Record<string, string> = {
+  performance: "Performance",
+  accessibility: "Accessibility",
+  seo: "SEO",
+  "best-practices": "Best Practices",
+};
+
+function categoryLine(categories: Record<string, number | null>): string {
+  const parts = Object.entries(categories)
+    .filter(([, score]) => score !== null)
+    .map(([id, score]) => `${CATEGORY_LABEL[id] ?? id} ${Math.round((score ?? 0) * 100)}`);
+  return parts.length ? `  Lighthouse: ${parts.join(" · ")}` : "";
+}
+
 /**
  * The plain-language report for the human, written to stderr.
  * Speaks outcomes and next steps, never code.
  */
-export function renderHumanReport(path: string, findings: Finding[], score: Score): string {
-  const lines: string[] = ["", `Revivify checked ${path}`, ""];
+export function renderHumanReport(output: CheckOutput): string {
+  const { path, mode, findings, score, categories } = output;
+  const lines: string[] = ["", `Revivify checked ${path}`];
+  if (mode === "fast") lines.push("  (fast pre-check — static checks only; run without --fast for the full audit)");
+  lines.push("");
   lines.push(`  Trust: ${score.outOfTen}/10 — ${score.passing} of ${score.applicable} checks passing`);
+  if (categories) {
+    const line = categoryLine(categories);
+    if (line) lines.push(line);
+  }
   lines.push("");
 
   for (const f of findings) {

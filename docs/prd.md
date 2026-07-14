@@ -104,8 +104,8 @@ Four pillars implement one tiny lifecycle: **goal → build-with-guardrails → 
 ## 8. Scope
 
 ### 8.1 MVP (must-have)
-- `revivify check ./site` → runs the **15 Tier-1 rules** across a11y / performance / SEO / best-practices ([`rule-catalog.md`](rule-catalog.md)).
-- **Trust score:** `X/10` headline + "N of 15 passing"; composed from Lighthouse category scores + axe results; **non-applicable checks drop from the denominator** so a simple page is never penalized.
+- `revivify check ./site` → runs the Tier-1 rules across a11y / performance / SEO / best-practices ([`rule-catalog.md`](rule-catalog.md)). *(M1: 13 of 15 are live via Lighthouse/axe; 2 deferred, not faked — decision log #10.)*
+- **Trust score:** `X/10` headline + "N of M passing" (M = applicable rules); composed from Lighthouse category scores + axe results; **non-applicable checks drop from the denominator** so a simple page is never penalized.
 - **Ship-ready bar = 10/10** (default; configurable in `.revivify.yaml`) — every applicable objective check passing. "Your call" judgment items must be explicitly resolved (fixed or knowingly accepted) so a deliberate brand choice doesn't trap the page below the bar.
 - **Dual-audience output:** structured TOON to stdout for the agent; plain-language report for the human; progress to stderr.
 - **Three-way triage** + **intent capture** + **own-the-fix loop**.

@@ -25,7 +25,7 @@ Each milestone gives you four ways in — use whichever you like:
 | Milestone | Guide | What it proves |
 |---|---|---|
 | **M0 — walking skeleton** | [`m0.md`](m0.md) | `revivify check` runs end-to-end: score + cited findings + plain-language fixes, on source-only checks |
-| M1 — validate pillar | _next_ | Real accessibility & performance engines (axe-core + Lighthouse) and the full 15-rule set |
-| M2 — init + hook | _planned_ | Guardrails dropped up front + the check gating "done" automatically |
+| **M1 — validate pillar** | [`m1.md`](m1.md) | Real engines (axe-core + Lighthouse), 13 cited rules, and actual category scores |
+| M2 — init + hook | _next_ | Guardrails dropped up front + the check gating "done" automatically |
 | M3 — check UX | _planned_ | Intent capture, three-way triage, the own-the-fix loop |
 | M4 — demo + polish | _planned_ | A shareable, demonstrable product |

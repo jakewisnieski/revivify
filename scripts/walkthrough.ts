@@ -4,13 +4,13 @@
  * It runs the REAL check pipeline (no fakes) against the example pages, so what
  * you see here is exactly what the tool produces. Built for a non-developer:
  * watch a raw page get graded and explained, then watch a fixed page reach 10/10.
+ *
+ * Uses the instant --fast pre-check so the tour stays quick; the full Lighthouse
+ * audit is what `revivify check` runs by default.
  */
 import { resolve } from "node:path";
-import { loadPage } from "../src/loadPage.js";
-import { rules } from "../src/checks/registry.js";
-import { scoreFindings } from "../src/score.js";
+import { check } from "../src/commands/check.js";
 import { renderHumanReport } from "../src/report/human.js";
-import type { Finding } from "../src/checks/types.js";
 
 const EXAMPLES = import.meta.dirname
   ? resolve(import.meta.dirname, "..", "examples")
@@ -25,15 +25,9 @@ function say(text: string): void {
   process.stdout.write(`\n${text}\n`);
 }
 
-async function check(exampleDir: string): Promise<void> {
-  const page = await loadPage(resolve(EXAMPLES, exampleDir));
-  const findings: Finding[] = rules.map((rule) => ({
-    id: rule.id,
-    title: rule.title,
-    standard: rule.standard,
-    ...rule.run(page),
-  }));
-  process.stdout.write(renderHumanReport(page.path, findings, scoreFindings(findings)));
+async function showCheck(exampleDir: string): Promise<void> {
+  const output = await check(resolve(EXAMPLES, exampleDir), { mode: "fast" });
+  process.stdout.write(renderHumanReport(output));
 }
 
 async function main(): Promise<void> {
@@ -46,7 +40,7 @@ async function main(): Promise<void> {
 
   banner("STEP 1 of 2 · A page fresh from an AI agent, with no guardrails");
   say("We ask Revivify to check it:");
-  await check("starter-slop");
+  await showCheck("starter-slop");
   say(
     "That's the point: Revivify gave it a low score and told you EXACTLY what's wrong —\n" +
       "each item in plain English, each tied to a real standard, each with a fix. 'Your call'\n" +
@@ -55,7 +49,7 @@ async function main(): Promise<void> {
 
   banner("STEP 2 of 2 · The same page, rebuilt following that guidance");
   say("We check the fixed version:");
-  await check("perfect");
+  await showCheck("perfect");
   say(
     "10 / 10 — Ship-ready. That's the bar (a perfect score), because a non-developer should\n" +
       "be able to trust that nothing broken was left behind.",

@@ -30,27 +30,30 @@ I'm not a developer. I build things with AI agents. Every time, I hit the same w
 
 ## Status
 
-🔨 **Building — M0 (walking skeleton) has landed.** `revivify check` runs end-to-end today: a first pack of citable, source-only checks → a trust score → dual output (structured for the agent, plain-language for you). Next: **M1** wires axe-core + Lighthouse and the full 15-rule set. Milestones live in the [PRD](docs/prd.md).
+🔨 **Building — M1 (the real engines) has landed.** `revivify check` now runs a full **Lighthouse** audit (with **axe-core** inside it for accessibility): **13 cited rules** across accessibility, performance, SEO, and best practices → a trust score → real category scores → dual output (structured for the agent, plain-language for you). Next: **M2** (`revivify init` + the Claude Code hook that gates "done"). Milestones live in the [PRD](docs/prd.md).
 
 **What works now — `revivify check`:**
 
 ```
-$ revivify check ./demo-site
+$ revivify check ./examples/starter-slop
+Running the full audit (Lighthouse) — this takes ~30–45s…
 
-Revivify checked …/demo-site/index.html
+Revivify checked …/examples/starter-slop/index.html
 
-  Trust: 5/10 — 3 of 6 checks passing
+  Trust: 6/10 — 7 of 11 checks passing
+  Lighthouse: Performance 100 · Accessibility 56 · Best Practices 96 · SEO 73
 
-  ✗ Page declares its language
-      WCAG 2.2 — 3.1.1 Language of Page (Level A)
-      → Add a language to the opening <html> tag, e.g. <html lang="en">.  [We'll fix it]
-  ✗ Page has a meta description   …
-  ✗ Images have alt text          …
+  ✗ Images have alt text
+      WCAG 2.2 — 1.1.1 Non-text Content (Level A)
+      → Add descriptive alt text to each meaningful image…  [We'll fix it]
+  ✗ Page declares its language      …
+  ✗ Page has a title                …
+  ✗ Page has a meta description     …
 
-  Not yet ⚠️  — 3 checks to fix, then re-run to watch the score climb to 10.
+  Not yet ⚠️  — 4 checks to fix, then re-run to watch the score climb to 10.
 ```
 
-The check exits `0` only at a perfect **10/10** (ship-ready) and non-zero otherwise — the deterministic gate the Claude Code hook will hang off. The M0 pack covers six source-checkable Tier-1 rules: `<html lang>`, `<title>`, meta description, responsive viewport, image alt text, and accidental `noindex`.
+The check exits `0` only at a perfect **10/10** (ship-ready) and non-zero otherwise — the deterministic gate the Claude Code hook will hang off. Add `--fast` for an instant static pre-check (no browser) while iterating. Two of the 15 catalog rules (non-text contrast, broken links) don't have a trustworthy automatic check yet and are deferred, not faked — see [decision log #10](docs/decision-log.md).
 
 ### Product docs
 
@@ -66,11 +69,14 @@ Requires Node ≥ 20.
 
 ```bash
 npm install
-npm run walkthrough            # a narrated 2-minute tour (start here)
-npm run check -- ./demo-site   # check a folder (or an .html file)
-npm test                       # run the test suite
-npm run build                  # compile to dist/ (provides the `revivify` bin)
+npm run walkthrough                    # a narrated 2-minute tour (start here)
+npm run check -- ./examples/perfect    # full Lighthouse audit (~30–45s)
+npm run check -- ./examples/perfect --fast   # instant static pre-check (no browser)
+npm test                               # run the test suite
+npm run build                          # compile to dist/ (provides the `revivify` bin)
 ```
+
+The full audit launches headless Chrome (auto-detected). 
 
 `stdout` carries structured results for a coding agent; `stderr` carries the plain-language report and trust score for you.
 
@@ -82,8 +88,8 @@ You don't need to read code to confirm Revivify works. Every milestone ships an 
 - **[`examples/`](examples/)** — pages with known results to check and compare against.
 - **[`docs/walkthroughs/`](docs/walkthroughs/)** — a plain-language guide per milestone, each ending in an **acceptance checklist** you sign off to say "yes, this is the right thing."
 
-## Planned architecture
+## Architecture
 
-An **[AXI](https://axi.md/)-designed CLI** (`revivify`) plus a **Claude Code hook**, in **Node / TypeScript**, wrapping **axe-core** and **Lighthouse**. No MCP server — see the [decision log](docs/decision-log.md) for why.
+An **[AXI](https://axi.md/)-designed CLI** (`revivify`) in **Node / TypeScript**, wrapping **Lighthouse** (which runs **axe-core** for accessibility). The Claude Code hook that gates "done" arrives in M2. No MCP server — see the [decision log](docs/decision-log.md) for why.
 
-Inside `src/`: `cli.ts` (entry) → `commands/check.ts` (orchestration) → `checks/` (a registry of citable rule packs) → `score.ts` (trust-score rollup) → `report/` (a plain-language channel for the human and a structured channel for the agent).
+Inside `src/`: `cli.ts` (entry) → `commands/check.ts` (orchestration; full vs `--fast`) → `engine/lighthouse.ts` (serves the page over loopback HTTP, drives headless Chrome, returns category scores + audits) → `checks/` (rule packs: `lighthouse.ts` maps audits to cited findings, `staticHtml.ts` is the fast pre-check) → `score.ts` (trust-score rollup) → `report/` (a plain-language channel for the human and a structured channel for the agent).

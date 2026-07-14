@@ -4,9 +4,13 @@ import { runCheck } from "./commands/check.js";
 const USAGE = `revivify — a quality gate for AI-built landing pages
 
 Usage:
-  revivify check [path]   Check a landing page against citable best practices.
-                          path: an .html file or a folder containing index.html
-                          (defaults to the current directory).
+  revivify check [path] [--fast]   Check a landing page against citable best practices.
+                                   path: an .html file or a folder containing index.html
+                                   (defaults to the current directory).
+
+Options:
+  --fast   Run only the instant static pre-check (no Lighthouse). Good for a quick
+           look while iterating; the full audit is what certifies ship-ready.
 
 Output:
   stdout   structured results for your coding agent
@@ -18,7 +22,8 @@ Exit code:
 `;
 
 async function main(): Promise<number> {
-  const [command, ...rest] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const command = args[0];
 
   if (!command) {
     process.stderr.write(USAGE);
@@ -29,7 +34,10 @@ async function main(): Promise<number> {
     return 0;
   }
   if (command === "check") {
-    return runCheck(rest[0] ?? ".");
+    const rest = args.slice(1);
+    const mode = rest.includes("--fast") ? "fast" : "full";
+    const path = rest.find((a) => !a.startsWith("-")) ?? ".";
+    return runCheck(path, { mode });
   }
 
   process.stderr.write(`Unknown command: ${command}\n\n${USAGE}`);

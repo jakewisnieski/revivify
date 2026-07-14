@@ -1,5 +1,4 @@
-import type { Finding } from "../checks/types.js";
-import type { Score } from "../score.js";
+import type { CheckOutput } from "./types.js";
 
 /**
  * The structured report for the coding agent, written to stdout.
@@ -8,10 +7,12 @@ import type { Score } from "../score.js";
  * to cut agent-token cost; that encoding swaps in behind this seam in a later
  * milestone without changing any caller.
  */
-export function renderAgentReport(path: string, findings: Finding[], score: Score): string {
+export function renderAgentReport(output: CheckOutput): string {
+  const { path, mode, findings, score, categories } = output;
   const payload = {
     tool: "revivify",
     command: "check",
+    mode,
     path,
     score: {
       outOfTen: score.outOfTen,
@@ -19,6 +20,16 @@ export function renderAgentReport(path: string, findings: Finding[], score: Scor
       applicable: score.applicable,
       shipReady: score.shipReady,
     },
+    ...(categories
+      ? {
+          categories: Object.fromEntries(
+            Object.entries(categories).map(([id, value]) => [
+              id,
+              value === null ? null : Math.round(value * 100),
+            ]),
+          ),
+        }
+      : {}),
     findings: findings.map((f) => ({
       id: f.id,
       title: f.title,

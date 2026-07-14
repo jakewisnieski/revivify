@@ -66,12 +66,21 @@ Requires Node ≥ 20.
 
 ```bash
 npm install
+npm run walkthrough            # a narrated 2-minute tour (start here)
 npm run check -- ./demo-site   # check a folder (or an .html file)
 npm test                       # run the test suite
 npm run build                  # compile to dist/ (provides the `revivify` bin)
 ```
 
 `stdout` carries structured results for a coding agent; `stderr` carries the plain-language report and trust score for you.
+
+### Try it / verify it as the end user
+
+You don't need to read code to confirm Revivify works. Every milestone ships an end-user verification layer:
+
+- **`npm run walkthrough`** — a guided, narrated tour of the real tool.
+- **[`examples/`](examples/)** — pages with known results to check and compare against.
+- **[`docs/walkthroughs/`](docs/walkthroughs/)** — a plain-language guide per milestone, each ending in an **acceptance checklist** you sign off to say "yes, this is the right thing."
 
 ## Planned architecture
 

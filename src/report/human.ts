@@ -38,7 +38,7 @@ export function renderHumanReport(path: string, findings: Finding[], score: Scor
   } else {
     const failing = findings.filter((f) => f.verdict === "fail").length;
     lines.push(
-      `  Not yet ⚠️  — ${failing} ${failing === 1 ? "check" : "checks"} to fix. Fix them, then re-run revivify check to watch the score climb to 10.`,
+      `  Not yet ⚠️  — ${failing} ${failing === 1 ? "check" : "checks"} to fix. Fix ${failing === 1 ? "it" : "them"}, then re-run revivify check to watch the score climb to 10.`,
     );
   }
   lines.push("");

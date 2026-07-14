@@ -17,6 +17,7 @@
     "build": "tsc",
     "dev": "tsx src/cli.ts",
     "check": "tsx src/cli.ts check",
+    "walkthrough": "tsx scripts/walkthrough.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"src/**/*.test.ts\""
   },

@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20 # matches package.json "engines": { "node": ">=20" }
+          node-version: 22 # LTS; the test runner needs Node 21+ to expand the "src/**/*.test.ts" glob
           cache: npm
       - run: npm ci
       - run: npm run typecheck

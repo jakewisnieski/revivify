@@ -18,7 +18,7 @@
     "build": "tsc",
     "dev": "tsx src/cli.ts",
     "check": "tsx src/cli.ts check",
-    "ui": "tsx src/cli.ts ui",
+    "ui": "tsx src/cli.ts ui ./examples/perfect",
     "walkthrough": "tsx scripts/walkthrough.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"src/**/*.test.ts\""

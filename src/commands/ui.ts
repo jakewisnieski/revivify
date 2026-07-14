@@ -1,6 +1,7 @@
 import { createServer, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
+import { spawn } from "node:child_process";
 import { check } from "./check.js";
 import type { ProgressEvent } from "../engine/lighthouse.js";
 
@@ -18,6 +19,23 @@ const CONTENT_TYPES: Record<string, string> = {
 /** Send one Server-Sent Event. */
 function sse(res: ServerResponse, event: string, data: unknown): void {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
+/** Best-effort: open the given URL in the user's default browser. */
+function openBrowser(url: string): void {
+  const [cmd, args] =
+    process.platform === "win32"
+      ? ["cmd", ["/c", "start", "", url]]
+      : process.platform === "darwin"
+        ? ["open", [url]]
+        : ["xdg-open", [url]];
+  try {
+    const child = spawn(cmd as string, args as string[], { detached: true, stdio: "ignore" });
+    child.on("error", () => undefined); // browser couldn't be opened — the printed URL still works
+    child.unref();
+  } catch {
+    /* best-effort only */
+  }
 }
 
 async function serveStatic(pathname: string, res: ServerResponse): Promise<void> {
@@ -76,8 +94,9 @@ export async function runUi(initialPath: string): Promise<number> {
 
   const uiUrl = `http://127.0.0.1:${port}`;
   process.stderr.write(
-    `\n  🌱 Revivify cockpit is running.\n\n     Open ${uiUrl} in your browser.\n     (Press Ctrl+C to stop.)\n\n`,
+    `\n  🌱 Revivify cockpit is running.\n\n     Opening ${uiUrl} in your browser…\n     (If it doesn't open, paste that URL in yourself. Press Ctrl+C to stop.)\n\n`,
   );
+  if (!process.env.REVIVIFY_NO_OPEN) openBrowser(uiUrl);
 
   // Keep the process alive until the user stops it.
   return new Promise<number>(() => undefined);

@@ -8,8 +8,10 @@ const USAGE = `revivify — a quality gate for AI-built landing pages
 Usage:
   revivify init [path] [--force]   Set up a project for the Revivify lifecycle:
                                    scaffold .revivify.yaml (the ship-ready bar and
-                                   check toggles). path defaults to the current
-                                   directory; --force regenerates an existing config.
+                                   check toggles), the rules pack + plan under
+                                   .revivify/, and a CLAUDE.md pointer (only if none
+                                   exists). path defaults to the current directory;
+                                   --force regenerates the Revivify-owned files.
   revivify check [path] [--fast]   Check a landing page against citable best practices.
                                    path: an .html file or a folder containing index.html
                                    (defaults to the current directory).

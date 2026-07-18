@@ -1,10 +1,16 @@
-import { writeFile, access } from "node:fs/promises";
+import { writeFile, mkdir, access } from "node:fs/promises";
 import { constants } from "node:fs";
-import { resolve, join } from "node:path";
+import { resolve, join, dirname } from "node:path";
 import { rules as staticRules } from "../checks/registry.js";
 
 /** The config file `revivify init` scaffolds. */
 export const CONFIG_FILENAME = ".revivify.yaml";
+/** The rules pack that steers the coding agent up front. */
+export const GUARDRAILS_PATH = ".revivify/guardrails.md";
+/** The one-page plan + definition-of-done. */
+export const PLAN_PATH = ".revivify/plan.md";
+/** The Claude Code entry point that points the agent at the guardrails. */
+export const CLAUDE_MD_PATH = "CLAUDE.md";
 
 /** The default ship-ready bar: a perfect 10/10 (decision log #9). */
 export const DEFAULT_THRESHOLD = 10;
@@ -17,8 +23,35 @@ export const LIGHTHOUSE_CATEGORIES = [
   "best-practices",
 ] as const;
 
+/** Plain-language guidance for each Lighthouse category gate, with its standard. */
+const CATEGORY_GUIDANCE: Record<(typeof LIGHTHOUSE_CATEGORIES)[number], string> = {
+  performance:
+    "Keep Core Web Vitals green: size and lazy-load images, set width/height to avoid layout shift, defer non-critical scripts. _(Core Web Vitals — LCP, CLS, INP)_",
+  accessibility:
+    "Meet WCAG 2.2 AA: sufficient colour contrast, labelled form controls, a logical heading order, everything reachable by keyboard. _(WCAG 2.2, checked via axe-core)_",
+  seo: "Follow Google Search Essentials: crawlable links, a descriptive title and description, valid structured markup. _(Google Search Essentials)_",
+  "best-practices":
+    "Serve over HTTPS, no console errors, no deprecated APIs, correct image aspect ratios. _(Lighthouse best-practices)_",
+};
+
+/**
+ * A directive for each static-HTML rule, keyed by its live rule id. Kept in
+ * lock-step with the check registry: a new rule without guidance here fails the
+ * guardrails coverage test, so the pack can never quietly fall behind the checks.
+ */
+export const RULE_GUIDANCE: Record<string, string> = {
+  "html-lang": 'Set a language on the root element — `<html lang="en">`. Screen readers use it to pick the right voice.',
+  "doc-title": "Give every page a unique, descriptive `<title>` — it is the browser-tab label and the search-result headline.",
+  "meta-description":
+    'Add a `<meta name="description">` that summarises the page in ~150 characters; it becomes the search snippet.',
+  "meta-viewport":
+    'Include `<meta name="viewport" content="width=device-width, initial-scale=1">` so the page is mobile-friendly.',
+  "img-alt": 'Give every `<img>` alt text — describe the content, or use `alt=""` for purely decorative images.',
+  noindex: 'Ship the page indexable — don\'t leave a `<meta name="robots" content="noindex">` behind from a template.',
+};
+
 export interface InitOptions {
-  /** Overwrite an existing .revivify.yaml instead of leaving it untouched. */
+  /** Overwrite existing Revivify-owned files instead of leaving them untouched. */
   force: boolean;
 }
 
@@ -52,6 +85,108 @@ ${categoryLines}
 `;
 }
 
+/**
+ * Compose the rules pack — the guardrails that steer the coding agent toward
+ * best practices *before* any check runs. The per-check list is generated from
+ * the live registry so it always matches what `revivify check` enforces, and
+ * every item cites its published standard.
+ */
+export function renderGuardrails(): string {
+  const checkLines = staticRules
+    .map((rule) => `- **${rule.title}** — ${RULE_GUIDANCE[rule.id] ?? ""}  _(${rule.standard})_`)
+    .join("\n");
+  const categoryLines = LIGHTHOUSE_CATEGORIES.map(
+    (id) => `- **${id}** — ${CATEGORY_GUIDANCE[id]}`,
+  ).join("\n");
+
+  return `# Revivify guardrails
+
+You are building a landing page that must pass the **Revivify** quality gate
+before it can ship. Build to these best practices **up front** — each one maps
+to a check Revivify runs, and every check cites a published standard.
+
+## Category gates (the full Lighthouse audit)
+${categoryLines}
+
+## Specific checks (run on every audit)
+${checkLines}
+
+## Definition of done
+"Done" means **passing the gate**: run \`revivify check\` and reach the
+ship-ready bar in \`.revivify.yaml\` (default ${DEFAULT_THRESHOLD}/10 — every
+applicable check passing), with each "your call" finding explicitly resolved.
+See \`.revivify/plan.md\`.
+`;
+}
+
+/**
+ * Compose the one-page plan + definition-of-done. Frames the tiny lifecycle
+ * Revivify wraps around a page and states, unambiguously, what "done" means.
+ */
+export function renderPlan(): string {
+  return `# Plan & definition of done
+
+Revivify wraps one small lifecycle around your landing page:
+
+    goal → build (with guardrails) → check → fix → ship-ready
+
+1. **Goal** — decide what the page is for. Its intent is what Revivify checks against.
+2. **Build with guardrails** — the coding agent follows \`.revivify/guardrails.md\`,
+   steering toward best practices before anything is checked.
+3. **Check** — \`revivify check\` runs deterministic accessibility / performance /
+   SEO / best-practice checks and returns a **trust score** with cited findings.
+4. **Fix** — resolve each finding (own-the-fix loop) and re-check until the score climbs.
+5. **Ship-ready** — the gate passes; the page is genuinely done, not just "looks done".
+
+## Definition of done
+"Done" means **passing the gate**: \`revivify check\` reaches the ship-ready bar in
+\`.revivify.yaml\` (default **${DEFAULT_THRESHOLD}/10** — every applicable check
+passing), and every "your call" finding is explicitly resolved (fixed, or knowingly
+accepted). Verified done, not assumed done.
+`;
+}
+
+/**
+ * Compose the Claude Code entry point. Written only when the project has no
+ * CLAUDE.md, so the agent is pointed at the guardrails without ever clobbering
+ * instructions the user already wrote.
+ */
+export function renderClaudeMd(): string {
+  return `# Project guardrails (managed by Revivify)
+
+This project uses **Revivify** as a quality gate. Before treating any page as
+done, build to the guardrails and pass the check.
+
+@${GUARDRAILS_PATH}
+
+**Definition of done:** \`revivify check\` passes the ship-ready bar in
+\`${CONFIG_FILENAME}\` (default ${DEFAULT_THRESHOLD}/10). See \`${PLAN_PATH}\`.
+`;
+}
+
+/**
+ * How a scaffolded file is treated when it already exists:
+ * - `revivify-owned`   — Revivify's to manage; skipped unless `--force` regenerates it.
+ * - `create-if-absent` — the user's to own; created only when missing, never overwritten.
+ */
+type Policy = "revivify-owned" | "create-if-absent";
+
+interface Artifact {
+  relPath: string;
+  render: () => string;
+  policy: Policy;
+  label: string;
+}
+
+const ARTIFACTS: Artifact[] = [
+  { relPath: CONFIG_FILENAME, render: renderConfig, policy: "revivify-owned", label: "ship-ready bar & check toggles" },
+  { relPath: GUARDRAILS_PATH, render: renderGuardrails, policy: "revivify-owned", label: "rules pack (agent guardrails)" },
+  { relPath: PLAN_PATH, render: renderPlan, policy: "revivify-owned", label: "plan & definition of done" },
+  { relPath: CLAUDE_MD_PATH, render: renderClaudeMd, policy: "create-if-absent", label: "points your coding agent at the guardrails" },
+];
+
+type Status = "created" | "regenerated" | "skipped" | "kept";
+
 async function fileExists(path: string): Promise<boolean> {
   try {
     await access(path, constants.F_OK);
@@ -64,8 +199,10 @@ async function fileExists(path: string): Promise<boolean> {
 /**
  * Scaffold a project for the Revivify lifecycle.
  *
- * Writes `.revivify.yaml` into `dir`. Non-destructive by default: if a config
- * already exists it is left untouched (re-run with `--force` to regenerate).
+ * Writes `.revivify.yaml`, the rules pack, and the plan/definition-of-done, and
+ * (only when absent) a `CLAUDE.md` that points the agent at the guardrails.
+ * Non-destructive by default: Revivify-owned files are left untouched unless
+ * `--force` regenerates them, and an existing `CLAUDE.md` is never overwritten.
  * Emits a plain-language summary to stderr and a compact machine-readable line
  * to stdout, mirroring the dual-audience split of `revivify check`.
  *
@@ -73,28 +210,44 @@ async function fileExists(path: string): Promise<boolean> {
  */
 export async function runInit(dir: string, options: InitOptions): Promise<number> {
   const targetDir = resolve(dir);
-  const configPath = join(targetDir, CONFIG_FILENAME);
-  const exists = await fileExists(configPath);
+  const results: Array<{ artifact: Artifact; status: Status }> = [];
 
-  if (exists && !options.force) {
-    process.stderr.write(
-      `\nRevivify is already initialized here.\n` +
-        `  ${CONFIG_FILENAME} already exists — leaving it untouched.\n` +
-        `  Re-run with --force to regenerate it from the defaults.\n\n`,
-    );
-    process.stdout.write(`revivify init: skipped (${CONFIG_FILENAME} exists)\n`);
-    return 0;
+  for (const artifact of ARTIFACTS) {
+    const full = join(targetDir, artifact.relPath);
+    const exists = await fileExists(full);
+
+    let status: Status;
+    if (exists && artifact.policy === "create-if-absent") {
+      status = "kept";
+    } else if (exists && !options.force) {
+      status = "skipped";
+    } else {
+      await mkdir(dirname(full), { recursive: true });
+      await writeFile(full, artifact.render(), "utf8");
+      status = exists ? "regenerated" : "created";
+    }
+    results.push({ artifact, status });
   }
 
-  await writeFile(configPath, renderConfig(), "utf8");
+  const wroteSomething = results.some((r) => r.status === "created" || r.status === "regenerated");
+  const mark: Record<Status, string> = { created: "✓", regenerated: "✓", skipped: "•", kept: "•" };
 
-  const verb = exists ? "Regenerated" : "Created";
-  process.stderr.write(
-    `\nRevivify is set up in ${targetDir}\n` +
-      `  ${verb} ${CONFIG_FILENAME} — ship-ready bar ${DEFAULT_THRESHOLD}/10, every check on.\n` +
-      `  Edit it to tune the bar or turn a check off (a deliberate "your call").\n` +
-      `  Next: run \`revivify check\` to see where the page stands.\n\n`,
-  );
-  process.stdout.write(`revivify init: ${verb.toLowerCase()} ${CONFIG_FILENAME}\n`);
+  const lines: string[] = [""];
+  lines.push(wroteSomething ? `Revivify is set up in ${targetDir}` : `Revivify is already initialized in ${targetDir}`);
+  for (const { artifact, status } of results) {
+    const note =
+      status === "kept"
+        ? `left your existing file untouched — add \`@${GUARDRAILS_PATH}\` to use the guardrails`
+        : status === "skipped"
+          ? "already exists (--force to regenerate)"
+          : artifact.label;
+    lines.push(`  ${mark[status]} ${status.padEnd(11)} ${artifact.relPath.padEnd(24)} ${note}`);
+  }
+  lines.push(`  Next: run \`revivify check\` to see where the page stands.`);
+  lines.push("");
+  process.stderr.write(lines.join("\n"));
+
+  const summary = results.map((r) => `${r.artifact.relPath}=${r.status}`).join(" ");
+  process.stdout.write(`revivify init: ${summary}\n`);
   return 0;
 }

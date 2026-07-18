@@ -107,6 +107,35 @@ Prefix every commit so history is scannable and can auto-generate changelogs:
 
 *(We've been doing this since M0 — keep it up. Example from our history: `feat: M1 — real Lighthouse + axe-core engine`.)*
 
+## Labels — typing and grouping the work
+
+Labels make the board filterable and a ticket's *kind* legible at a glance. Revivify's set mirrors [Lucid](https://github.com/jakewisnieski/Lucid) so both projects read the same way.
+
+**Type** — what kind of change (matches the Conventional Commit prefix):
+
+| Label | For |
+|---|---|
+| `enhancement` | a new capability (`feat:`) |
+| `bug` | a bug fix (`fix:`) |
+| `documentation` | docs |
+| `chore` | tooling / config / process |
+| `refactor` | restructuring, no behaviour change |
+| `test` | tests |
+
+**Milestone grouping** — an `mN` label (e.g. `m3`) tags every issue in milestone MN. The Milestone field already groups them; the label just makes a board view one click, across states.
+
+**Wayfinder** — the planning-phase ticket types (adopted from M4 onward; the phase itself is documented as we roll it out):
+
+| Label | For |
+|---|---|
+| `wayfinder:map` | the shared plan — one living epic issue |
+| `wayfinder:grilling` | a decision ticket — grill it with docs |
+| `wayfinder:research` | AFK doc/API research that cites sources |
+| `wayfinder:prototype` | a throwaway prototype to de-risk a call |
+| `wayfinder:task` | a manual unblocking task |
+
+**Rule of thumb:** every issue gets at least a **type** label; build issues also carry their **`mN`** label.
+
 ## Versioning & releases
 
 **Semantic Versioning — `MAJOR.MINOR.PATCH`:**

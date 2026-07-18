@@ -30,6 +30,8 @@ export function renderAgentReport(output: CheckOutput): string {
           ),
         }
       : {}),
+    ...(output.intent ? { intent: output.intent } : {}),
+    ...(output.accept && Object.keys(output.accept).length > 0 ? { accept: output.accept } : {}),
     findings: findings.map((f) => ({
       id: f.id,
       title: f.title,

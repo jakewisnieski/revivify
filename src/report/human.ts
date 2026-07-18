@@ -1,4 +1,5 @@
 import type { Triage } from "../checks/types.js";
+import { INTENT_FILENAME } from "../config.js";
 import type { CheckOutput } from "./types.js";
 
 const TRIAGE_LABEL: Record<Triage, string> = {
@@ -35,6 +36,11 @@ export function renderHumanReport(output: CheckOutput): string {
     const line = categoryLine(categories);
     if (line) lines.push(line);
   }
+  lines.push(
+    output.intent
+      ? `  Intent noted (${INTENT_FILENAME}).`
+      : `  Tip: add ${INTENT_FILENAME} so deliberate choices aren't flagged as mistakes.`,
+  );
   lines.push("");
 
   for (const f of findings) {

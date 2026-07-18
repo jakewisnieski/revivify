@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile, rm, access } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile, rm, mkdir, access } from "node:fs/promises";
 import { constants } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -13,11 +13,21 @@ import {
   GUARDRAILS_PATH,
   PLAN_PATH,
   CLAUDE_MD_PATH,
+  CLAUDE_SETTINGS_PATH,
+  HOOK_COMMAND,
   DEFAULT_THRESHOLD,
   LIGHTHOUSE_CATEGORIES,
   RULE_GUIDANCE,
 } from "./init.js";
+import { DEFAULT_ENFORCEMENT } from "../config.js";
 import { rules as staticRules } from "../checks/registry.js";
+
+function stopHookCommands(settings: string): string[] {
+  const parsed = JSON.parse(settings) as {
+    hooks?: { Stop?: Array<{ hooks?: Array<{ command?: string }> }> };
+  };
+  return (parsed.hooks?.Stop ?? []).flatMap((g) => (g.hooks ?? []).map((h) => h.command ?? ""));
+}
 
 async function tempDir(): Promise<string> {
   return mkdtemp(join(tmpdir(), "revivify-init-"));
@@ -36,6 +46,10 @@ async function exists(path: string): Promise<boolean> {
 
 test("renderConfig sets the default ship-ready threshold", () => {
   assert.match(renderConfig(), new RegExp(`^threshold: ${DEFAULT_THRESHOLD}$`, "m"));
+});
+
+test("renderConfig sets the default enforcement mode", () => {
+  assert.match(renderConfig(), new RegExp(`^enforcement: ${DEFAULT_ENFORCEMENT}$`, "m"));
 });
 
 test("renderConfig lists a toggle for every live rule and Lighthouse category", () => {
@@ -133,6 +147,55 @@ test("init --force regenerates the Revivify-owned files from the defaults", asyn
     assert.equal(code, 0);
     assert.equal(await readFile(join(dir, CONFIG_FILENAME), "utf8"), renderConfig());
     assert.equal(await readFile(join(dir, GUARDRAILS_PATH), "utf8"), renderGuardrails());
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+// --- the "done" gate hook install ---
+
+test("init installs the Stop gate hook into .claude/settings.json", async () => {
+  const dir = await tempDir();
+  try {
+    await runInit(dir, { force: false });
+    const settings = await readFile(join(dir, CLAUDE_SETTINGS_PATH), "utf8");
+    assert.ok(stopHookCommands(settings).includes(HOOK_COMMAND), "gate hook should be installed");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("init is idempotent: re-running never duplicates the gate hook", async () => {
+  const dir = await tempDir();
+  try {
+    await runInit(dir, { force: false });
+    await runInit(dir, { force: false });
+    const settings = await readFile(join(dir, CLAUDE_SETTINGS_PATH), "utf8");
+    const ours = stopHookCommands(settings).filter((c) => c === HOOK_COMMAND);
+    assert.equal(ours.length, 1, "the gate hook should appear exactly once");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("init merges the hook into existing settings without disturbing them", async () => {
+  const dir = await tempDir();
+  try {
+    const claudeDir = join(dir, ".claude");
+    await mkdir(claudeDir, { recursive: true });
+    const existing = {
+      permissions: { allow: ["Bash(ls:*)"] },
+      hooks: { Stop: [{ hooks: [{ type: "command", command: "echo mine" }] }] },
+    };
+    await writeFile(join(claudeDir, "settings.json"), JSON.stringify(existing, null, 2), "utf8");
+
+    await runInit(dir, { force: false });
+
+    const parsed = JSON.parse(await readFile(join(dir, CLAUDE_SETTINGS_PATH), "utf8"));
+    assert.deepEqual(parsed.permissions.allow, ["Bash(ls:*)"], "unrelated settings preserved");
+    const commands = stopHookCommands(JSON.stringify(parsed));
+    assert.ok(commands.includes("echo mine"), "existing hook preserved");
+    assert.ok(commands.includes(HOOK_COMMAND), "gate hook added alongside");
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

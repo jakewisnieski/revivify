@@ -62,7 +62,7 @@ Items 3–6 are the concrete setup that turns this document from aspiration into
 One trip through the loop = **one feature or fix.** Internalize this.
 
 ### 1. Create an Issue (Plan)
-Describe the work as an **outcome**: *"As a user I can X so that Y,"* plus **acceptance criteria** (how we'll know it's done). Assign it to a **Milestone**. This is the requirement of record.
+Describe the work as an **outcome**: *"As a user I can X so that Y,"* plus **acceptance criteria** (how we'll know it's done). Assign it to a **Milestone** and give it a **[type + `mN` label](#labels--typing-and-grouping-the-work)**. This is the requirement of record. Milestone build modules use the self-contained **[build-ticket template](../.github/ISSUE_TEMPLATE/build-ticket.md)** — it carries the module's *grounded-in* traceability, an *intent seed*, its *acceptance walkthrough*, and *close-out* inline (see **[build-gate.md](build-gate.md)**).
 
 ### 2. Branch off `main` (isolate)
 **One branch per issue**, named by type and topic:
@@ -80,6 +80,8 @@ When the branch is ready, open a PR back to `main`. The description says **what 
 - **Automated checks (GitHub Actions)** — `npm test` + `npm run typecheck` on every PR. **Red = don't merge.** (This is the seat where the `no-mistakes` pipeline lands.)
 - **Code review** — Claude self-reviews the diff (`/code-review`), and runs a Greptile pass (`/cli-review` locally, `/greploop` on the PR) when we want deeper review.
 - **Jake's acceptance test** — Jake runs the app and verifies the milestone **as the end user** (our `verify` habit; each milestone already ships a `docs/walkthroughs/` acceptance checklist).
+
+> **Build modules run these three gates as a fixed two-gate close-out** — Gate 0 (automated `/no-mistakes`: review + tests + lint + PR + CI) → Gate 1 (Jake's acceptance walkthrough) → merge. The full contract, including the intent-seed model and `ask-user` escalation, is in **[build-gate.md](build-gate.md)**.
 
 ### 5. Merge (Integrate)
 Once checks are green and Jake has accepted it: **Squash merge** (keeps `main`'s history to one clean commit per feature), then **delete the branch** (GitHub offers this). The issue closes itself.

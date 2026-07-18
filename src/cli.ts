@@ -2,6 +2,7 @@
 import { runCheck } from "./commands/check.js";
 import { runUi } from "./commands/ui.js";
 import { runInit } from "./commands/init.js";
+import { runGate } from "./commands/gate.js";
 
 const USAGE = `revivify — a quality gate for AI-built landing pages
 
@@ -17,6 +18,10 @@ Usage:
                                    (defaults to the current directory).
   revivify ui [path]               Open the visual cockpit in your browser and watch
                                    the audit happen live.
+  revivify gate [path]             Run the "done" gate: check the page and, per
+                                   .revivify.yaml, nudge (warn) or block until the
+                                   score clears the bar. This is what the installed
+                                   Claude Code Stop hook calls.
 
 Options:
   --fast    Run only the instant static pre-check (no Lighthouse). Good for a quick
@@ -55,6 +60,10 @@ async function main(): Promise<number> {
     const mode = rest.includes("--fast") ? "fast" : "full";
     const path = rest.find((a) => !a.startsWith("-")) ?? ".";
     return runCheck(path, { mode });
+  }
+  if (command === "gate") {
+    const path = args.slice(1).find((a) => !a.startsWith("-")) ?? ".";
+    return runGate(path);
   }
   if (command === "ui") {
     const path = args.slice(1).find((a) => !a.startsWith("-")) ?? ".";

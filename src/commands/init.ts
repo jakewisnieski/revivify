@@ -1,19 +1,21 @@
-import { writeFile, mkdir, access } from "node:fs/promises";
+import { readFile, writeFile, mkdir, access } from "node:fs/promises";
 import { constants } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { rules as staticRules } from "../checks/registry.js";
+import { CONFIG_FILENAME, DEFAULT_THRESHOLD, DEFAULT_ENFORCEMENT } from "../config.js";
 
-/** The config file `revivify init` scaffolds. */
-export const CONFIG_FILENAME = ".revivify.yaml";
+// Re-exported so consumers (and tests) can source these from either module.
+export { CONFIG_FILENAME, DEFAULT_THRESHOLD } from "../config.js";
 /** The rules pack that steers the coding agent up front. */
 export const GUARDRAILS_PATH = ".revivify/guardrails.md";
 /** The one-page plan + definition-of-done. */
 export const PLAN_PATH = ".revivify/plan.md";
 /** The Claude Code entry point that points the agent at the guardrails. */
 export const CLAUDE_MD_PATH = "CLAUDE.md";
-
-/** The default ship-ready bar: a perfect 10/10 (decision log #9). */
-export const DEFAULT_THRESHOLD = 10;
+/** The Claude Code settings file the "done" hook is installed into. */
+export const CLAUDE_SETTINGS_PATH = ".claude/settings.json";
+/** The command the installed Stop hook runs to gate "done". */
+export const HOOK_COMMAND = "npx revivify gate";
 
 /** The four Lighthouse category gates the full audit rolls up. */
 export const LIGHTHOUSE_CATEGORIES = [
@@ -73,6 +75,11 @@ export function renderConfig(): string {
 # Ship-ready bar: the trust score (0–10) a page must reach to pass the gate.
 # Default is a perfect 10 — every applicable check passing.
 threshold: ${DEFAULT_THRESHOLD}
+
+# How the "done" gate behaves when a page is below the bar:
+#   warn  — nudge only (non-blocking); good while iterating.
+#   block — stop "done" until the score clears the bar.
+enforcement: ${DEFAULT_ENFORCEMENT}
 
 # Individual checks. Every check is on by default; set one to false only when
 # you've made a deliberate, documented choice to skip it (a "your call").
@@ -196,13 +203,61 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
+/** The outcome of installing the "done" gate hook into Claude Code settings. */
+type HookStatus = "installed" | "present" | "unparseable";
+
+type StopHookGroup = { matcher?: string; hooks: Array<{ type: string; command: string }> };
+
+/**
+ * Install the Stop hook that gates "done" into `.claude/settings.json`.
+ *
+ * Non-destructive and idempotent: merges into existing settings, preserves any
+ * other hooks, and won't add a duplicate if ours is already there. If the file
+ * exists but isn't valid JSON, it is left untouched (we never clobber a file we
+ * can't safely parse) and the caller reports it so the user can add it by hand.
+ */
+async function installStopHook(targetDir: string): Promise<HookStatus> {
+  const file = join(targetDir, CLAUDE_SETTINGS_PATH);
+
+  let raw: string | undefined;
+  try {
+    raw = await readFile(file, "utf8");
+  } catch {
+    raw = undefined;
+  }
+
+  let settings: Record<string, unknown> = {};
+  if (raw !== undefined) {
+    try {
+      settings = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return "unparseable";
+    }
+  }
+
+  const hooks = (settings.hooks ??= {}) as Record<string, unknown>;
+  const stop = (hooks.Stop ??= []) as StopHookGroup[];
+
+  const already = stop.some(
+    (group) => Array.isArray(group.hooks) && group.hooks.some((h) => h.command === HOOK_COMMAND),
+  );
+  if (already) return "present";
+
+  stop.push({ hooks: [{ type: "command", command: HOOK_COMMAND }] });
+  await mkdir(dirname(file), { recursive: true });
+  await writeFile(file, JSON.stringify(settings, null, 2) + "\n", "utf8");
+  return "installed";
+}
+
 /**
  * Scaffold a project for the Revivify lifecycle.
  *
- * Writes `.revivify.yaml`, the rules pack, and the plan/definition-of-done, and
- * (only when absent) a `CLAUDE.md` that points the agent at the guardrails.
+ * Writes `.revivify.yaml`, the rules pack, and the plan/definition-of-done,
+ * (only when absent) a `CLAUDE.md` that points the agent at the guardrails, and
+ * installs the Stop hook that gates "done" into `.claude/settings.json`.
  * Non-destructive by default: Revivify-owned files are left untouched unless
- * `--force` regenerates them, and an existing `CLAUDE.md` is never overwritten.
+ * `--force` regenerates them, an existing `CLAUDE.md` is never overwritten, and
+ * the hook is merged into existing settings without disturbing other hooks.
  * Emits a plain-language summary to stderr and a compact machine-readable line
  * to stdout, mirroring the dual-audience split of `revivify check`.
  *
@@ -229,7 +284,10 @@ export async function runInit(dir: string, options: InitOptions): Promise<number
     results.push({ artifact, status });
   }
 
-  const wroteSomething = results.some((r) => r.status === "created" || r.status === "regenerated");
+  const hookStatus = await installStopHook(targetDir);
+
+  const wroteSomething =
+    hookStatus === "installed" || results.some((r) => r.status === "created" || r.status === "regenerated");
   const mark: Record<Status, string> = { created: "✓", regenerated: "✓", skipped: "•", kept: "•" };
 
   const lines: string[] = [""];
@@ -243,11 +301,19 @@ export async function runInit(dir: string, options: InitOptions): Promise<number
           : artifact.label;
     lines.push(`  ${mark[status]} ${status.padEnd(11)} ${artifact.relPath.padEnd(24)} ${note}`);
   }
+
+  const hookLine: Record<HookStatus, string> = {
+    installed: `  ✓ installed   ${CLAUDE_SETTINGS_PATH.padEnd(24)} Stop hook — nudges "done" toward ship-ready via \`${HOOK_COMMAND}\``,
+    present: `  • present     ${CLAUDE_SETTINGS_PATH.padEnd(24)} "done" gate hook already installed`,
+    unparseable: `  ! skipped     ${CLAUDE_SETTINGS_PATH.padEnd(24)} couldn't parse it — add a Stop hook running \`${HOOK_COMMAND}\` yourself`,
+  };
+  lines.push(hookLine[hookStatus]);
+
   lines.push(`  Next: run \`revivify check\` to see where the page stands.`);
   lines.push("");
   process.stderr.write(lines.join("\n"));
 
   const summary = results.map((r) => `${r.artifact.relPath}=${r.status}`).join(" ");
-  process.stdout.write(`revivify init: ${summary}\n`);
+  process.stdout.write(`revivify init: ${summary} ${CLAUDE_SETTINGS_PATH}=${hookStatus}\n`);
   return 0;
 }

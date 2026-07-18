@@ -46,7 +46,7 @@ Status for **this** repo (`github.com/jakewisnieski/revivify`):
 | 1 | **README** — what it is, how to run, current status | The front door reviewers see | ✅ Done |
 | 2 | **`.gitignore`** covers secrets & build junk | How you avoid committing API keys / `node_modules` | ✅ Done — `.env*`, `dist/`, `node_modules/` all ignored |
 | 3 | **Branch protection on `main`** (a ruleset): require a PR, block force-push & deletion, no bypass | Forces the SDLC gate — no accidental dumps onto `main` | ✅ Done — active ruleset, `current_user_can_bypass: never` |
-| 4 | **Project board** (Todo / In Progress / Review / Done) linked to the repo | Makes the plan visible | ⬜ Not yet |
+| 4 | **Project board** (Todo / In Progress / Review / Done) linked to the repo | Makes the plan visible | ✅ Done — [board](https://github.com/users/jakewisnieski/projects/2) linked to the repo; Todo → In Progress → Review → Done statuses; issues added |
 | 5 | **Issue templates** (`.github/ISSUE_TEMPLATE/`) — a Feature and a Bug template | Every issue is structured — great for a portfolio | ✅ Done — Feature + Bug + config |
 | 6 | **CI workflow** (`.github/workflows/ci.yml`) — run `npm test` + `npm run typecheck` on every PR | Red = don't merge; the automated half of the gate | ✅ Done — `test` job; required check on `main` |
 

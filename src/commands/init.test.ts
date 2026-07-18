@@ -9,7 +9,9 @@ import {
   renderConfig,
   renderGuardrails,
   renderPlan,
+  renderIntent,
   CONFIG_FILENAME,
+  INTENT_FILENAME,
   GUARDRAILS_PATH,
   PLAN_PATH,
   CLAUDE_MD_PATH,
@@ -19,7 +21,7 @@ import {
   LIGHTHOUSE_CATEGORIES,
   RULE_GUIDANCE,
 } from "./init.js";
-import { DEFAULT_ENFORCEMENT } from "../config.js";
+import { DEFAULT_ENFORCEMENT, loadIntent } from "../config.js";
 import { rules as staticRules } from "../checks/registry.js";
 
 function stopHookCommands(settings: string): string[] {
@@ -60,6 +62,16 @@ test("renderConfig lists a toggle for every live rule and Lighthouse category", 
   for (const category of LIGHTHOUSE_CATEGORIES) {
     assert.match(config, new RegExp(`^  ${category}: true$`, "m"), `missing toggle for ${category}`);
   }
+});
+
+test("renderConfig scaffolds an empty accept block for your-call acceptances", () => {
+  assert.match(renderConfig(), /^accept: \{\}$/m);
+});
+
+test("renderIntent is a plain-language prompt-sheet that points at the accept block", () => {
+  const intent = renderIntent();
+  assert.match(intent, /What is this page for\?/);
+  assert.ok(intent.includes(CONFIG_FILENAME), "intent should point at the accept: block in the config");
 });
 
 // --- rules pack + plan content ---
@@ -117,6 +129,40 @@ test("init is non-destructive: an existing config is left untouched without --fo
     const code = await runInit(dir, { force: false });
     assert.equal(code, 0);
     assert.equal(await readFile(join(dir, CONFIG_FILENAME), "utf8"), sentinel, "config should be preserved");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("init scaffolds a page-intent prompt-sheet in a fresh project", async () => {
+  const dir = await tempDir();
+  try {
+    await runInit(dir, { force: false });
+    assert.equal(await readFile(join(dir, INTENT_FILENAME), "utf8"), renderIntent());
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("a freshly scaffolded intent.md reads as not-yet-filled (nudges, not 'noted')", async () => {
+  const dir = await tempDir();
+  try {
+    await runInit(dir, { force: false });
+    assert.equal(await loadIntent(dir), undefined, "an untouched scaffold must not count as captured intent");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("init never overwrites an existing intent.md — even with --force (it's the user's)", async () => {
+  const dir = await tempDir();
+  try {
+    const mine = "# My page intent\nA very specific thing I wrote.\n";
+    await mkdir(join(dir, ".revivify"), { recursive: true });
+    await writeFile(join(dir, INTENT_FILENAME), mine, "utf8");
+
+    await runInit(dir, { force: true });
+    assert.equal(await readFile(join(dir, INTENT_FILENAME), "utf8"), mine, "user's intent must be preserved");
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

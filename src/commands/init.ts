@@ -2,10 +2,10 @@ import { readFile, writeFile, mkdir, access } from "node:fs/promises";
 import { constants } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { rules as staticRules } from "../checks/registry.js";
-import { CONFIG_FILENAME, DEFAULT_THRESHOLD, DEFAULT_ENFORCEMENT } from "../config.js";
+import { CONFIG_FILENAME, INTENT_FILENAME, DEFAULT_THRESHOLD, DEFAULT_ENFORCEMENT } from "../config.js";
 
 // Re-exported so consumers (and tests) can source these from either module.
-export { CONFIG_FILENAME, DEFAULT_THRESHOLD } from "../config.js";
+export { CONFIG_FILENAME, INTENT_FILENAME, DEFAULT_THRESHOLD } from "../config.js";
 /** The rules pack that steers the coding agent up front. */
 export const GUARDRAILS_PATH = ".revivify/guardrails.md";
 /** The one-page plan + definition-of-done. */
@@ -89,6 +89,45 @@ ${ruleLines}
 # Lighthouse category gates (the full audit). Each is on by default.
 categories:
 ${categoryLines}
+
+# "Your call" acceptances. Some findings are judgment calls (a "your call") —
+# e.g. a low-contrast caption that's your brand palette. When you knowingly
+# accept one, record it here with a reason. Revivify keeps it visible in the
+# report but stops it holding the page below the ship-ready bar. For example:
+#   accept:
+#     color-contrast: "Brand palette; contrast verified on the hero only."
+accept: {}
+`;
+}
+
+/**
+ * Compose the plain-language page-intent prompt-sheet. `check` reads this to
+ * tell a deliberate choice apart from a mistake. It's the user's file
+ * (create-if-absent, never overwritten) and entirely optional.
+ */
+export function renderIntent(): string {
+  // The guidance lives in HTML comments on purpose: an untouched scaffold then
+  // strips to nothing, so `check` nudges the user to write intent rather than
+  // reporting the empty template as captured intent (see loadIntent).
+  return `# Page intent (for Revivify)
+
+<!--
+Revivify reads this before checking your page, so it can tell a deliberate
+choice apart from a mistake. Write in plain language under each heading — a
+sentence each is plenty. This file is optional; delete it to opt out.
+-->
+
+## What is this page for?
+<!-- e.g. "Waitlist signup for a design studio." -->
+
+## Who is it for?
+<!-- e.g. "Designers and small studios evaluating our tool." -->
+
+## Deliberate choices a checker might flag
+<!-- Things you chose on purpose that an automated check might call a problem —
+     e.g. "Low-contrast hero caption — it's our brand palette."
+     To formally accept one so it stops holding the page below the bar, add it
+     to the \`accept:\` block in ${CONFIG_FILENAME} with a reason. -->
 `;
 }
 
@@ -183,13 +222,22 @@ interface Artifact {
   render: () => string;
   policy: Policy;
   label: string;
+  /** The note shown when a `create-if-absent` file already exists (defaults to a generic one). */
+  keptNote?: string;
 }
 
 const ARTIFACTS: Artifact[] = [
-  { relPath: CONFIG_FILENAME, render: renderConfig, policy: "revivify-owned", label: "ship-ready bar & check toggles" },
+  { relPath: CONFIG_FILENAME, render: renderConfig, policy: "revivify-owned", label: "ship-ready bar, check toggles & acceptances" },
   { relPath: GUARDRAILS_PATH, render: renderGuardrails, policy: "revivify-owned", label: "rules pack (agent guardrails)" },
   { relPath: PLAN_PATH, render: renderPlan, policy: "revivify-owned", label: "plan & definition of done" },
-  { relPath: CLAUDE_MD_PATH, render: renderClaudeMd, policy: "create-if-absent", label: "points your coding agent at the guardrails" },
+  { relPath: INTENT_FILENAME, render: renderIntent, policy: "create-if-absent", label: "describe your page so checks respect deliberate choices" },
+  {
+    relPath: CLAUDE_MD_PATH,
+    render: renderClaudeMd,
+    policy: "create-if-absent",
+    label: "points your coding agent at the guardrails",
+    keptNote: `left your existing file untouched — add \`@${GUARDRAILS_PATH}\` to use the guardrails`,
+  },
 ];
 
 type Status = "created" | "regenerated" | "skipped" | "kept";
@@ -295,7 +343,7 @@ export async function runInit(dir: string, options: InitOptions): Promise<number
   for (const { artifact, status } of results) {
     const note =
       status === "kept"
-        ? `left your existing file untouched — add \`@${GUARDRAILS_PATH}\` to use the guardrails`
+        ? (artifact.keptNote ?? "left your existing file untouched")
         : status === "skipped"
           ? "already exists (--force to regenerate)"
           : artifact.label;

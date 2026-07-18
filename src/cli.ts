@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 import { runCheck } from "./commands/check.js";
 import { runUi } from "./commands/ui.js";
+import { runInit } from "./commands/init.js";
 
 const USAGE = `revivify — a quality gate for AI-built landing pages
 
 Usage:
+  revivify init [path] [--force]   Set up a project for the Revivify lifecycle:
+                                   scaffold .revivify.yaml (the ship-ready bar and
+                                   check toggles). path defaults to the current
+                                   directory; --force regenerates an existing config.
   revivify check [path] [--fast]   Check a landing page against citable best practices.
                                    path: an .html file or a folder containing index.html
                                    (defaults to the current directory).
@@ -12,8 +17,9 @@ Usage:
                                    the audit happen live.
 
 Options:
-  --fast   Run only the instant static pre-check (no Lighthouse). Good for a quick
-           look while iterating; the full audit is what certifies ship-ready.
+  --fast    Run only the instant static pre-check (no Lighthouse). Good for a quick
+            look while iterating; the full audit is what certifies ship-ready.
+  --force   (init) Overwrite an existing .revivify.yaml instead of leaving it in place.
 
 Output:
   stdout   structured results for your coding agent
@@ -35,6 +41,12 @@ async function main(): Promise<number> {
   if (command === "help" || command === "--help" || command === "-h") {
     process.stderr.write(USAGE);
     return 0;
+  }
+  if (command === "init") {
+    const rest = args.slice(1);
+    const force = rest.includes("--force");
+    const path = rest.find((a) => !a.startsWith("-")) ?? ".";
+    return runInit(path, { force });
   }
   if (command === "check") {
     const rest = args.slice(1);

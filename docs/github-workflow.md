@@ -37,6 +37,14 @@ There's a fitting symmetry here: Revivify is itself a quality gate that refuses 
 
 ---
 
+## Planning first — the wayfinder phase
+
+Before the build loop runs, product decisions are charted as a **wayfinder map** on GitHub Issues: a single issue labelled [`wayfinder:map`](#labels--typing-and-grouping-the-work) — the living shared plan — with child decision **tickets** (`wayfinder:research` / `prototype` / `grilling` / `task`). These resolve *decisions*, not code, so there are **no branches or PRs during planning**. Grilling is grounded in primary sources ("grill with docs"); every resolved decision is gisted into the map and, for the load-bearing calls, into [`decision-log.md`](decision-log.md). The build loop begins once the map hands off a build-ready milestone plan.
+
+Adopted **from M4 onward** — the M4 `wayfinder:map` epic is opened at M4 kickoff. (M0–M3's decisions were made in conversation and backfilled into the decision log, #14–#17; the map exists so a milestone's plan stays visible in one place and decisions stop evaporating into chat.)
+
+---
+
 ## One-time project setup
 
 Status for **this** repo (`github.com/jakewisnieski/revivify`):

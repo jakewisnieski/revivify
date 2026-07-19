@@ -7,6 +7,7 @@ export interface FixAction {
   standard: string;
   detail: string;
   fix: string;
+  learnMore: string;
 }
 
 /** A judgment item routed to the human — accept-or-fix, never auto-applied. */
@@ -15,6 +16,7 @@ export interface DecisionItem {
   title: string;
   detail: string;
   fix?: string;
+  learnMore: string;
 }
 
 /** An informational note — surfaced for awareness, no action. */
@@ -22,6 +24,7 @@ export interface InfoItem {
   id: string;
   title: string;
   detail: string;
+  learnMore: string;
 }
 
 /**
@@ -51,19 +54,19 @@ export function planActions(output: CheckOutput): Actions {
 
   const wellFixIt: FixAction[] = findings
     .filter((f) => f.triage === "well-fix-it" && f.verdict === "fail")
-    .map((f) => ({ id: f.id, title: f.title, standard: f.standard, detail: f.detail, fix: f.fix ?? "" }));
+    .map((f) => ({ id: f.id, title: f.title, standard: f.standard, detail: f.detail, fix: f.fix ?? "", learnMore: f.learnMore }));
 
   const byId = new Map(findings.map((f) => [f.id, f]));
   const yourCall: DecisionItem[] = score.yourCall
     .filter((y) => y.status === "unresolved")
     .map((y) => {
       const f = byId.get(y.id);
-      return { id: y.id, title: y.title, detail: f?.detail ?? "", ...(f?.fix ? { fix: f.fix } : {}) };
+      return { id: y.id, title: y.title, detail: f?.detail ?? "", ...(f?.fix ? { fix: f.fix } : {}), learnMore: f?.learnMore ?? "" };
     });
 
   const jsyk: InfoItem[] = findings
     .filter((f) => f.triage === "just-so-you-know" && f.verdict === "fail")
-    .map((f) => ({ id: f.id, title: f.title, detail: f.detail }));
+    .map((f) => ({ id: f.id, title: f.title, detail: f.detail, learnMore: f.learnMore }));
 
   return { wellFixIt, yourCall, jsyk };
 }

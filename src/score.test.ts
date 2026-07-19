@@ -4,12 +4,12 @@ import { scoreFindings } from "./score.js";
 import type { Finding, Triage, Verdict } from "./checks/types.js";
 
 function finding(verdict: Verdict): Finding {
-  return { id: "x", title: "x", standard: "s", verdict, triage: "just-so-you-know", detail: "" };
+  return { id: "x", title: "x", standard: "s", learnMore: "https://x.test", verdict, triage: "just-so-you-know", detail: "" };
 }
 
 /** A finding with an explicit id/triage — for the your-call (judgment) track. */
 function item(id: string, verdict: Verdict, triage: Triage): Finding {
-  return { id, title: id, standard: "s", verdict, triage, detail: "" };
+  return { id, title: id, standard: "s", learnMore: "https://x.test", verdict, triage, detail: "" };
 }
 
 test("all applicable checks passing → a perfect 10 and ship-ready", () => {

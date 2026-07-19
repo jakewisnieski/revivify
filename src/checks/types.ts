@@ -39,6 +39,8 @@ export interface Rule {
   title: string;
   /** The published standard this check enforces, cited exactly. */
   standard: string;
+  /** A URL to the exact published standard, so the user can verify and learn. */
+  learnMore: string;
   run(page: PageContext): RuleResult;
 }
 
@@ -47,4 +49,6 @@ export interface Finding extends RuleResult {
   id: string;
   title: string;
   standard: string;
+  /** A URL to the exact published standard (cite → teach → verify; decision-log #21). */
+  learnMore: string;
 }

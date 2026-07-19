@@ -10,6 +10,8 @@ interface LighthouseRule {
   id: string;
   title: string;
   standard: string;
+  /** A URL to the exact published standard (cite → teach → verify; decision-log #21). */
+  learnMore: string;
   auditId: string;
   triage: Triage;
   passDetail: string;
@@ -23,6 +25,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "image-alt",
     title: "Images have alt text",
     standard: "WCAG 2.2 — 1.1.1 Non-text Content (Level A)",
+    learnMore: "https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html",
     auditId: "image-alt",
     triage: "well-fix-it",
     passDetail: "Every image has alt text, so screen-reader users aren't left in the dark.",
@@ -34,6 +37,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "text-contrast",
     title: "Text has enough contrast",
     standard: "WCAG 2.2 — 1.4.3 Contrast (Minimum) (Level AA)",
+    learnMore: "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
     auditId: "color-contrast",
     triage: "your-call",
     passDetail: "Text meets the 4.5:1 contrast minimum, so it's readable for low-vision users.",
@@ -45,6 +49,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "html-lang",
     title: "Page declares its language",
     standard: "WCAG 2.2 — 3.1.1 Language of Page (Level A)",
+    learnMore: "https://www.w3.org/WAI/WCAG22/Understanding/language-of-page.html",
     auditId: "html-has-lang",
     triage: "well-fix-it",
     passDetail: "The <html> tag declares the page language, so assistive tech pronounces it correctly.",
@@ -56,6 +61,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "form-labels",
     title: "Form inputs have labels",
     standard: "WCAG 2.2 — 1.3.1 / 4.1.2 (Level A)",
+    learnMore: "https://www.w3.org/WAI/tutorials/forms/labels/",
     auditId: "label",
     triage: "well-fix-it",
     passDetail: "Form fields are labelled, so everyone knows what to type where.",
@@ -69,6 +75,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "lcp",
     title: "Loads quickly (largest content ≤ 2.5s)",
     standard: "Core Web Vitals — Largest Contentful Paint (LCP)",
+    learnMore: "https://web.dev/articles/lcp",
     auditId: "largest-contentful-paint",
     triage: "well-fix-it",
     passDetail: "The biggest thing on screen paints fast — the page feels quick.",
@@ -80,6 +87,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "cls",
     title: "Layout is stable (no jumping)",
     standard: "Core Web Vitals — Cumulative Layout Shift (CLS)",
+    learnMore: "https://web.dev/articles/cls",
     auditId: "cumulative-layout-shift",
     triage: "well-fix-it",
     passDetail: "Content doesn't jump around as the page loads.",
@@ -91,6 +99,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "image-optimization",
     title: "Images are optimized",
     standard: "Lighthouse — efficient image delivery (Core Web Vitals)",
+    learnMore: "https://developer.chrome.com/docs/lighthouse/performance/uses-optimized-images",
     auditId: "image-delivery-insight",
     triage: "well-fix-it",
     passDetail: "Images are efficiently delivered — right-sized and in modern formats.",
@@ -104,6 +113,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "doc-title",
     title: "Page has a title",
     standard: "Google Search Essentials — descriptive <title>",
+    learnMore: "https://developers.google.com/search/docs/appearance/title-link",
     auditId: "document-title",
     triage: "well-fix-it",
     passDetail: "The page has a title — the browser-tab label and the biggest search-ranking signal.",
@@ -115,6 +125,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "meta-description",
     title: "Page has a meta description",
     standard: "Google Search Essentials — meta description / snippet",
+    learnMore: "https://developers.google.com/search/docs/appearance/snippet",
     auditId: "meta-description",
     triage: "well-fix-it",
     passDetail: "A meta description is set, so you control the search-result snippet.",
@@ -126,6 +137,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "viewport",
     title: "Page is mobile-friendly (responsive viewport)",
     standard: "Google Search Essentials — mobile-first / responsive viewport",
+    learnMore: "https://web.dev/articles/responsive-web-design-basics",
     auditId: "meta-viewport",
     triage: "well-fix-it",
     passDetail: "A responsive viewport is set, so the page adapts to phones.",
@@ -137,6 +149,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "noindex",
     title: "Page isn't accidentally hidden from search engines",
     standard: "Google Search Essentials — robots meta / indexing",
+    learnMore: "https://developers.google.com/search/docs/crawling-indexing/block-indexing",
     auditId: "is-crawlable",
     triage: "your-call",
     passDetail: "Nothing is blocking search engines from indexing the page.",
@@ -150,6 +163,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "https",
     title: "Served securely over HTTPS",
     standard: "Google Search Essentials — HTTPS",
+    learnMore: "https://web.dev/articles/why-https-matters",
     auditId: "is-on-https",
     triage: "well-fix-it",
     passDetail: "The page is served over HTTPS (secure).",
@@ -161,11 +175,12 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     id: "console-errors",
     title: "No errors in the browser console",
     standard: "Lighthouse — Best Practices (console errors)",
+    learnMore: "https://developer.chrome.com/docs/lighthouse/best-practices/errors-in-console",
     auditId: "errors-in-console",
     triage: "well-fix-it",
     passDetail: "No JavaScript errors or failed requests logged while the page loaded.",
     failDetail:
-      "The browser logged errors while loading (broken scripts or failed requests, e.g. a missing image or file). It signals fragile output.",
+      "The browser logged errors while loading (broken scripts or failed requests, e.g. a missing image or file) — so visitors may hit features that silently break.",
     fix: "Open the page, check the browser console, and fix the errors — often a broken link to a missing file.",
   },
 ];
@@ -202,6 +217,7 @@ export function mapReportToFindings(report: LighthouseReport): Finding[] {
         id: rule.id,
         title: rule.title,
         standard: rule.standard,
+        learnMore: rule.learnMore,
         verdict: "not-applicable" as const,
         triage: "just-so-you-know" as const,
         detail:
@@ -216,6 +232,7 @@ export function mapReportToFindings(report: LighthouseReport): Finding[] {
       id: rule.id,
       title: rule.title,
       standard: rule.standard,
+      learnMore: rule.learnMore,
       verdict,
       triage: rule.triage,
       detail,

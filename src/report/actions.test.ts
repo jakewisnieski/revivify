@@ -10,6 +10,7 @@ function finding(id: string, verdict: Verdict, triage: Triage): Finding {
     id,
     title: `${id}-title`,
     standard: `${id}-standard`,
+    learnMore: `https://std.test/${id}`,
     verdict,
     triage,
     detail: `${id}-detail`,

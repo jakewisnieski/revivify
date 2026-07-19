@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40" role="img" aria-label="Bloom">
-  <rect width="120" height="40" rx="8" fill="#2e7d32"/>
-  <text x="60" y="26" font-family="sans-serif" font-size="18" fill="#ffffff" text-anchor="middle">Bloom</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="132" height="36" viewBox="0 0 132 36" role="img" aria-label="Bloom">
+  <g transform="translate(4 4)">
+    <path d="M14 28 C4 24 2 12 10 4 C13 11 14 20 14 28 Z" fill="#1f7a45"/>
+    <path d="M14 28 C24 24 26 12 18 4 C15 11 14 20 14 28 Z" fill="#2e8c53"/>
+    <path d="M14 28 L14 10" stroke="#0f5132" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+  <text x="36" y="25" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#17281f">Bloom</text>
 </svg>

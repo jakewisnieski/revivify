@@ -8,6 +8,12 @@ export interface CheckOutput {
   mode: "full" | "fast";
   findings: Finding[];
   score: Score;
+  /**
+   * Checks turned off by `.revivify.yaml` toggles (M5.3 / FR-10). Dropped from
+   * the score's denominator but surfaced so a disabled check is never a silent
+   * green. Present only when at least one check was disabled.
+   */
+  disabled?: Finding[];
   /** Lighthouse category scores (0–1), present only in full mode. */
   categories?: Record<string, number | null>;
   /** Captured page intent from `.revivify/intent.md`, when the human wrote one. */

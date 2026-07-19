@@ -42,6 +42,12 @@ export function renderGateReport(
   const unresolved = score.yourCall.filter((y) => y.status === "unresolved");
   for (const y of unresolved) lines.push(`  ◇ ${y.title} — your call (accept or fix)`);
 
+  // Name anything turned off in config, so a disabled check is never a silent green.
+  const disabled = output.disabled ?? [];
+  if (disabled.length > 0) {
+    lines.push(`  (disabled in config, not scored: ${disabled.map((f) => f.title).join(", ")})`);
+  }
+
   const clearsBar = score.outOfTen >= config.threshold;
   if (clearsBar) {
     lines.push(`  Ship-ready ✅ — clears the bar (${config.threshold}/10).`);

@@ -6,6 +6,9 @@ import type { Finding, Triage, Verdict } from "./types.js";
  * runs axe-core internally for its accessibility audits) and turns it into a
  * plain-language, cited finding. Category scores come straight from Lighthouse.
  */
+/** The four Lighthouse category gates a full-audit rule can belong to. */
+export type Category = "performance" | "accessibility" | "seo" | "best-practices";
+
 interface LighthouseRule {
   id: string;
   title: string;
@@ -13,6 +16,8 @@ interface LighthouseRule {
   /** A URL to the exact published standard (cite → teach → verify; decision-log #21). */
   learnMore: string;
   auditId: string;
+  /** The Lighthouse category this rule rolls up under — so a `categories:` toggle can disable it. */
+  category: Category;
   triage: Triage;
   passDetail: string;
   failDetail: string;
@@ -27,6 +32,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "WCAG 2.2 — 1.1.1 Non-text Content (Level A)",
     learnMore: "https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html",
     auditId: "image-alt",
+    category: "accessibility",
     triage: "well-fix-it",
     passDetail: "Every image has alt text, so screen-reader users aren't left in the dark.",
     failDetail:
@@ -39,6 +45,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "WCAG 2.2 — 1.4.3 Contrast (Minimum) (Level AA)",
     learnMore: "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
     auditId: "color-contrast",
+    category: "accessibility",
     triage: "your-call",
     passDetail: "Text meets the 4.5:1 contrast minimum, so it's readable for low-vision users.",
     failDetail:
@@ -51,6 +58,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "WCAG 2.2 — 3.1.1 Language of Page (Level A)",
     learnMore: "https://www.w3.org/WAI/WCAG22/Understanding/language-of-page.html",
     auditId: "html-has-lang",
+    category: "accessibility",
     triage: "well-fix-it",
     passDetail: "The <html> tag declares the page language, so assistive tech pronounces it correctly.",
     failDetail:
@@ -63,6 +71,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "WCAG 2.2 — 1.3.1 / 4.1.2 (Level A)",
     learnMore: "https://www.w3.org/WAI/tutorials/forms/labels/",
     auditId: "label",
+    category: "accessibility",
     triage: "well-fix-it",
     passDetail: "Form fields are labelled, so everyone knows what to type where.",
     failDetail:
@@ -77,6 +86,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Core Web Vitals — Largest Contentful Paint (LCP)",
     learnMore: "https://web.dev/articles/lcp",
     auditId: "largest-contentful-paint",
+    category: "performance",
     triage: "well-fix-it",
     passDetail: "The biggest thing on screen paints fast — the page feels quick.",
     failDetail:
@@ -89,6 +99,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Core Web Vitals — Cumulative Layout Shift (CLS)",
     learnMore: "https://web.dev/articles/cls",
     auditId: "cumulative-layout-shift",
+    category: "performance",
     triage: "well-fix-it",
     passDetail: "Content doesn't jump around as the page loads.",
     failDetail:
@@ -101,6 +112,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Lighthouse — efficient image delivery (Core Web Vitals)",
     learnMore: "https://developer.chrome.com/docs/lighthouse/performance/uses-optimized-images",
     auditId: "image-delivery-insight",
+    category: "performance",
     triage: "well-fix-it",
     passDetail: "Images are efficiently delivered — right-sized and in modern formats.",
     failDetail:
@@ -115,6 +127,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Google Search Essentials — descriptive <title>",
     learnMore: "https://developers.google.com/search/docs/appearance/title-link",
     auditId: "document-title",
+    category: "seo",
     triage: "well-fix-it",
     passDetail: "The page has a title — the browser-tab label and the biggest search-ranking signal.",
     failDetail:
@@ -127,6 +140,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Google Search Essentials — meta description / snippet",
     learnMore: "https://developers.google.com/search/docs/appearance/snippet",
     auditId: "meta-description",
+    category: "seo",
     triage: "well-fix-it",
     passDetail: "A meta description is set, so you control the search-result snippet.",
     failDetail:
@@ -139,6 +153,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Google Search Essentials — mobile-first / responsive viewport",
     learnMore: "https://web.dev/articles/responsive-web-design-basics",
     auditId: "meta-viewport",
+    category: "seo",
     triage: "well-fix-it",
     passDetail: "A responsive viewport is set, so the page adapts to phones.",
     failDetail:
@@ -151,6 +166,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Google Search Essentials — robots meta / indexing",
     learnMore: "https://developers.google.com/search/docs/crawling-indexing/block-indexing",
     auditId: "is-crawlable",
+    category: "seo",
     triage: "your-call",
     passDetail: "Nothing is blocking search engines from indexing the page.",
     failDetail:
@@ -165,6 +181,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Google Search Essentials — HTTPS",
     learnMore: "https://web.dev/articles/why-https-matters",
     auditId: "is-on-https",
+    category: "best-practices",
     triage: "well-fix-it",
     passDetail: "The page is served over HTTPS (secure).",
     failDetail:
@@ -177,6 +194,7 @@ const LIGHTHOUSE_RULES: LighthouseRule[] = [
     standard: "Lighthouse — Best Practices (console errors)",
     learnMore: "https://developer.chrome.com/docs/lighthouse/best-practices/errors-in-console",
     auditId: "errors-in-console",
+    category: "best-practices",
     triage: "well-fix-it",
     passDetail: "No JavaScript errors or failed requests logged while the page loaded.",
     failDetail:
@@ -243,3 +261,12 @@ export function mapReportToFindings(report: LighthouseReport): Finding[] {
 
 /** Number of rules in the full pack (for "N of M" messaging). */
 export const LIGHTHOUSE_RULE_COUNT = LIGHTHOUSE_RULES.length;
+
+/**
+ * Full-audit finding id → its Lighthouse category, derived from the live rule
+ * table so a `categories:` toggle can disable every check under a category
+ * without a hand-kept list drifting from the rules (the decision-log #15 pattern).
+ */
+export const RULE_CATEGORY: Record<string, Category> = Object.fromEntries(
+  LIGHTHOUSE_RULES.map((rule) => [rule.id, rule.category]),
+);

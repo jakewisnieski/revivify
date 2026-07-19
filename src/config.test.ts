@@ -67,6 +67,43 @@ test("loadConfig reads a written config file", async () => {
   }
 });
 
+// --- the `rules:` / `categories:` toggle blocks (M5.3 / FR-10) ---
+
+test("parseConfig reads rules and categories toggles", () => {
+  const source = [
+    "threshold: 10",
+    "rules:",
+    "  html-lang: true",
+    "  meta-description: false",
+    "categories:",
+    "  performance: true",
+    "  seo: false",
+    "accept: {}",
+    "",
+  ].join("\n");
+  const config = parseConfig(source);
+  assert.equal(config.rules?.["html-lang"], true);
+  assert.equal(config.rules?.["meta-description"], false);
+  assert.equal(config.categories?.["performance"], true);
+  assert.equal(config.categories?.["seo"], false);
+});
+
+test("parseConfig treats a garbled toggle as its default (on) by omitting it", () => {
+  const config = parseConfig("rules:\n  html-lang: maybe\n  img-alt: false\n");
+  assert.equal(config.rules?.["html-lang"], undefined); // non-boolean → left at default
+  assert.equal(config.rules?.["img-alt"], false);
+});
+
+test("parseConfig yields empty toggle maps for an inline or absent block", () => {
+  const inline = parseConfig("rules: {}\ncategories: {}\n");
+  assert.deepEqual(inline.rules, {});
+  assert.deepEqual(inline.categories, {});
+
+  const absent = parseConfig("threshold: 10\n");
+  assert.deepEqual(absent.rules, {});
+  assert.deepEqual(absent.categories, {});
+});
+
 // --- the `accept:` map (your-call acceptances) ---
 
 test("parseConfig reads the accept map, unwrapping quoted reasons", () => {

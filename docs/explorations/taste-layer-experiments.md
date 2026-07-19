@@ -102,6 +102,35 @@ engine, not a model hallucination**. The burden moves from the unreliable model 
 engine. Residual invented spacing ("add 10 px") persists only because we don't yet extract
 spacing facts — extract them and it tightens too.
 
+## Experiment E — tightened extractor + image-based exemplar grounding
+
+Improved the prototype: hero-CTA selection (`.hero .btn-primary`), spacing extraction (hero-CTA
+gap, section-padding range), deduped CTA list, and optional image exemplars (`--exemplar`).
+
+**Extractor tightening works.** On the demo-site the model now reasons over *real* spacing
+(14 px hero-CTA gap, 48–64 px section padding) instead of inventing "add 10 px", and the CTA
+list is deduped. (The hero CTA genuinely is 16 px — the earlier "18 px" assumption was wrong —
+so "16 px vs 17 px body" is now a correctly-grounded observation, not a hallucination.)
+
+**Two honest, cautionary findings:**
+
+1. **Grounding is only as good as the facts you extract — and can *mask* visual defects.**
+   Grounded on `starter-slop` (unstyled: a placeholder circle for a hero, a raw text-link CTA,
+   default serif, no layout), the critique got *weaker* than the earlier ungrounded run
+   (Experiment A): the extracted facts (contrast 21:1, sizes fine — all technically healthy on a
+   visually-broken page) plus a strong "trust the facts, don't invent numbers" instruction
+   nudged the model toward copy nits and away from the glaring visual mess. Lesson: to judge
+   *visual* quality, either extract facts that capture visual failures (placeholder imagery, no
+   real layout, default fonts) **or** explicitly license the model to judge the aesthetic
+   dimensions facts can't cover. Grounding must fix confabulation without suppressing visual
+   judgment.
+2. **The 8B confuses exemplar vs. target with raw image grounding.** Given the slop page as
+   target and the demo-site as a "good" exemplar, the 8B critiqued the *exemplar* (it discussed
+   the demo-site's two CTAs, $29 card, feature columns) — the more visually salient image —
+   despite explicit "the LAST image is the page under review" instructions. **This validates the
+   agreed direction: mine exemplars into measurable text patterns, don't show raw exemplar images
+   to a small vision model.**
+
 ---
 
 ## Conclusions (for the wayfinder)
@@ -121,6 +150,11 @@ spacing facts — extract them and it tightens too.
 5. **Local model ceiling on 16 GB VRAM = the 8B.** The 30B MoE spills ~30% to system RAM and
    is too slow to use (Experiment C); larger-model quality comparisons belong on the Phase-2
    hosted/API path, not the local box.
+6. **Facts must cover the failure mode; exemplars should be text, not images (Experiment E).**
+   Grounding can *mask* visual defects when the extracted facts all look healthy — so extract
+   visual-failure facts and explicitly license aesthetic judgment. And raw image exemplars
+   confuse the 8B (it critiques the exemplar, not the target) — mine exemplars into measurable
+   text patterns, consistent with the §6 design direction.
 
 ## Open / next
 

@@ -4,6 +4,7 @@ import { extname, join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { check, projectDirOf } from "./check.js";
 import { upsertAccept } from "../config.js";
+import { applySafeFixes } from "../fix/applyFixes.js";
 import type { ProgressEvent } from "../engine/lighthouse.js";
 
 const WEB_DIR = resolve(import.meta.dirname, "..", "..", "web");
@@ -114,6 +115,23 @@ export async function runUi(initialPath: string): Promise<number> {
         await upsertAccept(dir, id, reason);
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ ok: true }));
+      } catch (err) {
+        res.writeHead(500, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }));
+      }
+      return;
+    }
+
+    // Apply the safe, honestly-sourced "we'll fix it" fixes to the page and write
+    // them back, then the cockpit re-checks so the dial climbs (M5.6, refines #20).
+    // Values come only from the page/assets — never fabricated; anything it can't
+    // source is left for the coding agent.
+    if (url.pathname === "/api/fix" && req.method === "POST") {
+      try {
+        const { path } = JSON.parse(await readBody(req)) as { path?: string };
+        const result = await applySafeFixes(path?.trim() || initialPath);
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify(result));
       } catch (err) {
         res.writeHead(500, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }));

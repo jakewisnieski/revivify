@@ -62,6 +62,44 @@ async function postAccept(id, reason) {
   }
 }
 
+// Apply the safe "we'll fix it" fixes to the page server-side, then re-check so
+// the dial climbs (M5.6, refines #20). Revivify writes only honestly-sourced
+// values; anything it can't source is left for the coding agent.
+async function postFix() {
+  const res = await fetch("/api/fix", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ path: $("path").value.trim() }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Couldn't apply the fixes.");
+  return data;
+}
+
+// Wire the "Apply the safe fixes" button in the plan card.
+function wireApplyFixes() {
+  const btn = document.querySelector(".apply-fixes-btn");
+  if (!btn) return;
+  const note = document.querySelector(".apply-note");
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    if (note) {
+      note.hidden = false;
+      note.textContent = "Applying the safe fixes…";
+    }
+    try {
+      await postFix();
+      run(); // re-check → the dial climbs and the plan re-renders
+    } catch (e) {
+      btn.disabled = false;
+      if (note) {
+        note.hidden = false;
+        note.textContent = e.message;
+      }
+    }
+  });
+}
+
 // Wire the inline Accept form on an unresolved your-call item. A reason is
 // required (decision #18); we use an inline field, never a browser prompt().
 function wireAccept(li, id) {
@@ -157,8 +195,12 @@ function render(out) {
       html += `<li><span class="dot well"></span> I can safely fix the <b>${fixable.length}</b> “we'll fix it” check${fixable.length === 1 ? "" : "s"} in one batch, then re-check.</li>`;
     if (unresolved.length)
       html += `<li><span class="dot your"></span> <b>${unresolved.length}</b> “your call” item${unresolved.length === 1 ? "" : "s"} — yours to settle (fix, or accept with a reason). I won't touch ${unresolved.length === 1 ? "it" : "them"}.</li>`;
-    planEl.innerHTML = html + `</ul>`;
+    html += `</ul>`;
+    if (fixable.length)
+      html += `<div class="apply-row"><button type="button" class="apply-fixes-btn">Apply the ${fixable.length} safe fix${fixable.length === 1 ? "" : "es"}</button><span class="apply-note muted" hidden></span></div>`;
+    planEl.innerHTML = html;
     planEl.classList.remove("hidden");
+    wireApplyFixes();
   } else {
     planEl.classList.add("hidden");
   }

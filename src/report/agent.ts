@@ -19,6 +19,14 @@ export function renderAgentReport(output: CheckOutput): string {
       passing: score.passing,
       applicable: score.applicable,
       shipReady: score.shipReady,
+      // The your-call track: judgment items and how each is settled. Parallel to
+      // the objective pass/fail, never folded into it (decision-log #18).
+      yourCall: score.yourCall.map((y) => ({
+        id: y.id,
+        title: y.title,
+        status: y.status,
+        ...(y.reason ? { reason: y.reason } : {}),
+      })),
     },
     ...(categories
       ? {

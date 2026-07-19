@@ -54,7 +54,13 @@ export async function check(path: string, options: CheckOptions): Promise<CheckO
       standard: rule.standard,
       ...rule.run(page),
     }));
-    return { path: page.path, mode: "fast", findings, score: scoreFindings(findings), ...context };
+    return {
+      path: page.path,
+      mode: "fast",
+      findings,
+      score: scoreFindings(findings, accept),
+      ...context,
+    };
   }
 
   const report = await runLighthouse(path, { onProgress: options.onProgress });
@@ -64,7 +70,7 @@ export async function check(path: string, options: CheckOptions): Promise<CheckO
     path,
     mode: "full",
     findings,
-    score: scoreFindings(findings),
+    score: scoreFindings(findings, accept),
     categories: report.categories,
     ...context,
   };

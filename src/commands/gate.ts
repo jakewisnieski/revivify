@@ -36,8 +36,11 @@ export function renderGateReport(
   const lines: string[] = ["", `Revivify gate — ${output.path}${modeNote}`];
   lines.push(`  Trust: ${score.outOfTen}/10 — ${score.passing} of ${score.applicable} checks passing`);
 
-  const failing = output.findings.filter((f) => f.verdict === "fail");
+  // Objective fails are "fix it"; your-call items are a human decision, not a ✗.
+  const failing = output.findings.filter((f) => f.verdict === "fail" && f.triage !== "your-call");
   for (const f of failing) lines.push(`  ✗ ${f.title}`);
+  const unresolved = score.yourCall.filter((y) => y.status === "unresolved");
+  for (const y of unresolved) lines.push(`  ◇ ${y.title} — your call (accept or fix)`);
 
   const clearsBar = score.outOfTen >= config.threshold;
   if (clearsBar) {

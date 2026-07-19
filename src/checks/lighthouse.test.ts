@@ -47,10 +47,13 @@ test("a failing binary audit becomes a failing finding with a fix", () => {
 });
 
 test("a null / notApplicable audit drops out of the denominator", () => {
+  // Baseline excludes the your-call rules from the objective denominator already,
+  // so assert the not-applicable audit removes exactly one more (semantics-proof).
+  const baseline = scoreFindings(mapReportToFindings(report())).applicable;
   const findings = mapReportToFindings(report({ label: { id: "label", score: null, scoreDisplayMode: "notApplicable" } }));
   assert.equal(byId(findings, "form-labels").verdict, "not-applicable");
   const score = scoreFindings(findings);
-  assert.equal(score.applicable, LIGHTHOUSE_RULE_COUNT - 1);
+  assert.equal(score.applicable, baseline - 1);
   assert.equal(score.shipReady, true); // everything else still passes
 });
 

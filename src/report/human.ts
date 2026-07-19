@@ -100,6 +100,25 @@ export function renderHumanReport(output: CheckOutput): string {
     lines.push("");
   }
 
+  // The own-the-fix plan: frame the safe batch as one approval, keep your-call
+  // items out of it (decision-log #20 — "we'll fix it" is defined-safe; your-call
+  // is decided individually and never auto-applied).
+  const fixable = findings.filter((f) => f.triage === "well-fix-it" && f.verdict === "fail");
+  if (fixable.length > 0 || unresolved.length > 0) {
+    lines.push("  My plan — approve in one step:");
+    if (fixable.length > 0) {
+      lines.push(
+        `    • I can safely fix the ${fixable.length} "we'll fix it" ${plural(fixable.length, "check")} above (the → items) in one batch, then re-check. Want me to?`,
+      );
+    }
+    if (unresolved.length > 0) {
+      lines.push(
+        `    • The ${unresolved.length} "your call" ${plural(unresolved.length, "item")} ${unresolved.length === 1 ? "is" : "are"} yours to settle — I won't touch ${unresolved.length === 1 ? "it" : "them"}. Fix, or accept with a reason.`,
+      );
+    }
+    lines.push("");
+  }
+
   if (score.shipReady) {
     lines.push("  Ship-ready ✅  — a perfect 10/10. Nothing broken was left behind.");
   } else {

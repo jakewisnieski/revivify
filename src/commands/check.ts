@@ -52,6 +52,7 @@ export async function check(path: string, options: CheckOptions): Promise<CheckO
       id: rule.id,
       title: rule.title,
       standard: rule.standard,
+      learnMore: rule.learnMore,
       ...rule.run(page),
     }));
     return {

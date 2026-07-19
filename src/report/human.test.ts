@@ -6,7 +6,7 @@ import type { Finding, Triage, Verdict } from "../checks/types.js";
 import type { CheckOutput } from "./types.js";
 
 function finding(id: string, verdict: Verdict, triage: Triage): Finding {
-  return { id, title: id, standard: `${id}-standard`, verdict, triage, detail: `${id}-detail`, ...(verdict === "fail" ? { fix: `${id}-fix` } : {}) };
+  return { id, title: id, standard: `${id}-standard`, learnMore: `https://std.test/${id}`, verdict, triage, detail: `${id}-detail`, ...(verdict === "fail" ? { fix: `${id}-fix` } : {}) };
 }
 
 function render(findings: Finding[], accept: Record<string, string> = {}): string {
@@ -56,4 +56,12 @@ test("a ship-ready page shows no plan block", () => {
   const report = render([finding("html-lang", "pass", "well-fix-it")]);
   assert.doesNotMatch(report, /My plan/);
   assert.match(report, /Ship-ready/);
+});
+
+test("a failing finding shows a Learn more link to its standard (cite → teach → verify)", () => {
+  const objective = render([finding("html-lang", "fail", "well-fix-it")]);
+  assert.match(objective, /Learn more: https:\/\/std\.test\/html-lang/);
+  // your-call items get the link too
+  const yourCall = render([finding("noindex", "fail", "your-call")]);
+  assert.match(yourCall, /Learn more: https:\/\/std\.test\/noindex/);
 });

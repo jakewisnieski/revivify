@@ -68,6 +68,7 @@ export function renderHumanReport(output: CheckOutput): string {
     if (f.verdict === "fail") {
       lines.push(`      ${f.detail}`);
       if (f.fix) lines.push(`      → ${f.fix}  [${TRIAGE_LABEL[f.triage]}]`);
+      lines.push(`      Learn more: ${f.learnMore}`);
     }
     lines.push("");
   }
@@ -82,12 +83,14 @@ export function renderHumanReport(output: CheckOutput): string {
         lines.push(`  ◇ ${y.title}  [accepted]`);
         if (f) lines.push(`      ${f.standard}`);
         if (f) lines.push(`      ${f.detail}`);
+        if (f) lines.push(`      Learn more: ${f.learnMore}`);
         lines.push(`      Accepted: "${y.reason}"`);
       } else {
         lines.push(`  ◇ ${y.title}  [needs your decision]`);
         if (f) lines.push(`      ${f.standard}`);
         if (f) lines.push(`      ${f.detail}`);
         if (f?.fix) lines.push(`      → ${f.fix}`);
+        if (f) lines.push(`      Learn more: ${f.learnMore}`);
         lines.push(`      This one's your call: fix it, or accept it with a reason in ${CONFIG_FILENAME} (accept:).`);
       }
       lines.push("");

@@ -10,6 +10,7 @@ const langRule: Rule = {
   id: "html-lang",
   title: "Page declares its language",
   standard: "WCAG 2.2 — 3.1.1 Language of Page (Level A)",
+  learnMore: "https://www.w3.org/WAI/WCAG22/Understanding/language-of-page.html",
   run(page) {
     const lang = page.root.querySelector("html")?.getAttribute("lang")?.trim();
     if (lang) {
@@ -33,6 +34,7 @@ const titleRule: Rule = {
   id: "doc-title",
   title: "Page has a title",
   standard: "Google Search Essentials — descriptive <title>",
+  learnMore: "https://developers.google.com/search/docs/appearance/title-link",
   run(page) {
     const title = page.root.querySelector("title")?.text?.trim();
     if (title) {
@@ -56,6 +58,7 @@ const metaDescriptionRule: Rule = {
   id: "meta-description",
   title: "Page has a meta description",
   standard: "Google Search Essentials — meta description / snippet",
+  learnMore: "https://developers.google.com/search/docs/appearance/snippet",
   run(page) {
     const content = page.root
       .querySelector('meta[name="description"]')
@@ -82,6 +85,7 @@ const viewportRule: Rule = {
   id: "meta-viewport",
   title: "Page is mobile-friendly (responsive viewport)",
   standard: "Google Search Essentials — mobile-first / responsive viewport",
+  learnMore: "https://web.dev/articles/responsive-web-design-basics",
   run(page) {
     const content =
       page.root.querySelector('meta[name="viewport"]')?.getAttribute("content")?.toLowerCase() ??
@@ -107,6 +111,7 @@ const imgAltRule: Rule = {
   id: "img-alt",
   title: "Images have alt text",
   standard: "WCAG 2.2 — 1.1.1 Non-text Content (Level A)",
+  learnMore: "https://www.w3.org/WAI/WCAG22/Understanding/non-text-content.html",
   run(page) {
     const images = page.root.querySelectorAll("img");
     if (images.length === 0) {
@@ -142,6 +147,7 @@ const noindexRule: Rule = {
   id: "noindex",
   title: "Page is not accidentally hidden from search engines",
   standard: "Google Search Essentials — robots meta / indexing",
+  learnMore: "https://developers.google.com/search/docs/crawling-indexing/block-indexing",
   run(page) {
     const content =
       page.root.querySelector('meta[name="robots"]')?.getAttribute("content")?.toLowerCase() ?? "";

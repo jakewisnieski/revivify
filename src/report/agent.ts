@@ -51,6 +51,7 @@ export function renderAgentReport(output: CheckOutput): string {
       title: f.title,
       verdict: f.verdict,
       standard: f.standard,
+      learnMore: f.learnMore,
       triage: f.triage,
       detail: f.detail,
       ...(f.fix ? { fix: f.fix } : {}),

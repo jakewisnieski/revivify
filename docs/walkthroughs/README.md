@@ -7,18 +7,25 @@ walkthrough you can run and check off — no code-reading required.
 If *you* (as the end user) can't tell whether a milestone did the right thing, neither
 could a real customer. That's a product signal, not just a QA step.
 
+## The milestone walkthrough is the human acceptance gate
+
+Since mid-M4 ([decision #23](../decision-log.md)), the prescriptive CLI UAT is retired. Per module, Claude self-verifies the acceptance scenarios in Gate 0. **The one hands-on step left for Jake is this walkthrough, run once per milestone before the release tag** — and it's meant to be done by *looking*, in the visual cockpit, not by typing CLI scripts. (Run it earlier, on demand, whenever a module lands a new surface you want to see.)
+
 ## How to verify any milestone
 
-Each milestone gives you four ways in — use whichever you like:
+Lead with the **visual** path; the rest are there if you want them:
 
-1. **Watch the guided tour** — `npm run walkthrough` runs the real tool against example
+1. **Open the cockpit** — `revivify ui ./examples/<name>` (or point it at a real landing page)
+   opens a browser and shows the audit run live: gauges fill, checks tick, the trust dial
+   lands. This is the primary, visual way to accept a milestone.
+2. **Follow the walkthrough guide** — the `mN.md` file below: "open the cockpit here, you
+   should *see* this," ending in a plain-language "is this the right thing?" checklist.
+3. **Watch the guided tour** — `npm run walkthrough` runs the real tool against example
    pages and narrates what's happening, start to finish.
-2. **Follow the walkthrough guide** — the `mN.md` file below: "here's what we built, run
-   this, here's what you should see."
-3. **Poke at the example gallery** — [`examples/`](../../examples/) has pages with known
+4. **Poke at the example gallery** — [`examples/`](../../examples/) has pages with known
    results; run `npm run check -- ./examples/<name>` and compare.
-4. **Sign off the acceptance checklist** — the plain-language "is this the right thing?"
-   list at the bottom of each guide. When you can tick every box, the milestone is done.
+
+When you can tick every box on the guide's checklist, the milestone is accepted.
 
 ## Milestones
 

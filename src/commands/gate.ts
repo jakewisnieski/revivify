@@ -1,7 +1,10 @@
-import { check } from "./check.js";
+import { check, type CheckOptions } from "./check.js";
 import { loadConfig, type RevivifyConfig } from "../config.js";
 import type { CheckOutput } from "../report/types.js";
 import type { Score } from "../score.js";
+
+/** The audit runner `runGate` uses — the real {@link check} by default, injectable for tests. */
+export type CheckFn = (dir: string, options: CheckOptions) => Promise<CheckOutput>;
 
 export interface GateDecision {
   /** True only when we should stop the agent from calling the work "done". */
@@ -71,14 +74,17 @@ export function renderGateReport(
  *
  * Designed to be safe as a hook: if there's no page to check yet (mid-build),
  * it reports and exits 0 rather than crashing the agent's session.
+ *
+ * `runCheck` defaults to the real audit; tests inject a deterministic one so the
+ * block-mode exit-code contract is verified end-to-end without launching Chrome.
  */
-export async function runGate(dir: string): Promise<number> {
+export async function runGate(dir: string, runCheck: CheckFn = check): Promise<number> {
   const config = await loadConfig(dir);
   const mode = config.enforcement === "block" ? "full" : "fast";
 
   let output: CheckOutput;
   try {
-    output = await check(dir, { mode });
+    output = await runCheck(dir, { mode });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     process.stderr.write(`\nRevivify gate: nothing to check yet — ${message}\n\n`);

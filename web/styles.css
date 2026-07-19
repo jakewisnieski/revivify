@@ -135,6 +135,32 @@ h2 { font-size: 15px; margin: 0 0 16px; }
 .rule-fix { margin-top: 6px; font-size: 14px; color: var(--ink); }
 .rule-fix .arrow { color: var(--accent); }
 .chip { display: inline-block; margin-left: 8px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; vertical-align: middle; }
-.chip.well { background: rgba(87,201,126,0.16); color: var(--green); }
+/* "We'll fix it" is an ACTION — violet, not green (green is reserved for pass/go; decision #11). */
+.chip.well { background: rgba(139,124,246,0.18); color: var(--accent); }
 .chip.info { background: rgba(159,177,167,0.16); color: var(--muted); }
 .chip.your { background: rgba(230,180,80,0.16); color: var(--amber); }
+
+/* Learn more link (M4.4 — cite → teach → verify) */
+.learn { color: var(--accent); text-decoration: none; white-space: nowrap; font-size: 13px; }
+.learn:hover { text-decoration: underline; }
+
+/* Captured intent (M4.1) */
+.intent-head { font-weight: 600; }
+.intent-body { margin-top: 8px; color: var(--muted); white-space: pre-wrap; font-size: 14px; max-height: 180px; overflow: auto; }
+code { background: var(--panel-2); padding: 1px 6px; border-radius: 6px; font-size: 0.92em; }
+
+/* The own-the-fix plan (M4.3) — violet action framing */
+.plan { border-color: var(--accent); background: linear-gradient(180deg, rgba(139,124,246,0.06), transparent); }
+.plan-head { font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.plan-badge { background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+.plan-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.plan-list li { display: flex; gap: 9px; align-items: baseline; font-size: 14px; }
+.dot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; margin-top: 5px; }
+.dot.well { background: var(--accent); }
+.dot.your { background: var(--amber); }
+
+/* "Your call" items (M4.2) — the judgment track */
+.rule.your-call .yc-mark { color: var(--amber); }
+.rule.your-call.accepted .yc-mark { color: var(--muted); }
+.rule-accepted { margin-top: 7px; font-size: 14px; color: var(--muted); font-style: italic; }
+.rule-hint { margin-top: 6px; font-size: 13px; color: var(--muted); }

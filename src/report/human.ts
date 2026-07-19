@@ -57,10 +57,12 @@ export function renderHumanReport(output: CheckOutput): string {
   );
   lines.push("");
 
-  // Objective checks (well-fix-it / just-so-you-know). Your-call items are held
-  // out and rendered in their own section so they're never confused with passes.
+  // Objective checks. A *failing* your-call is held out for its own section
+  // below; a passing your-call is a genuine objective pass and shows here as ✓
+  // (so the ✓ count matches the "N of M passing" headline).
   for (const f of findings) {
-    if (f.verdict === "not-applicable" || f.triage === "your-call") continue;
+    if (f.verdict === "not-applicable") continue;
+    if (f.triage === "your-call" && f.verdict === "fail") continue;
     lines.push(`  ${f.verdict === "pass" ? "✓" : "✗"} ${f.title}`);
     lines.push(`      ${f.standard}`);
     if (f.verdict === "fail") {

@@ -35,5 +35,5 @@ When you can tick every box on the guide's checklist, the milestone is accepted.
 | **M1 — validate pillar** | [`m1.md`](m1.md) | Real engines (axe-core + Lighthouse), 13 cited rules, and actual category scores |
 | **M2 — cockpit (visual UI)** | [`m2-cockpit.md`](m2-cockpit.md) | `revivify ui` — watch the audit happen live: gauges fill, checks tick, trust dial lands |
 | **M3 — init + hook** | [`m3-init-and-hook.md`](m3-init-and-hook.md) | `revivify init` drops the guardrails up front + installs a Stop hook that gates "done" automatically |
-| M4 — check UX | _planned_ | Intent capture, three-way triage, the own-the-fix loop |
+| **M4 — check UX** | [`m4.md`](m4.md) | Intent read back, three-way triage, accept a "your call" **in the cockpit**, and per-finding cite→teach→verify |
 | M5 — demo + polish | _planned_ | A shareable, demonstrable product |

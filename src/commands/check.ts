@@ -17,7 +17,7 @@ import type { ProgressFn } from "../engine/lighthouse.js";
  * The path Revivify is pointed at is that directory (per the `gate` convention);
  * if it's a file, its parent folder is the project root.
  */
-async function projectDirOf(path: string): Promise<string> {
+export async function projectDirOf(path: string): Promise<string> {
   const abs = resolve(path);
   try {
     if ((await stat(abs)).isDirectory()) return abs;

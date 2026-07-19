@@ -164,3 +164,21 @@ code { background: var(--panel-2); padding: 1px 6px; border-radius: 6px; font-si
 .rule.your-call.accepted .yc-mark { color: var(--muted); }
 .rule-accepted { margin-top: 7px; font-size: 14px; color: var(--muted); font-style: italic; }
 .rule-hint { margin-top: 6px; font-size: 13px; color: var(--muted); }
+
+/* Accept a "your call" right in the cockpit (M4.6) — violet action affordance */
+.yc-accept { margin-top: 10px; }
+.accept-btn {
+  background: transparent; color: var(--accent); border: 1px solid var(--accent);
+  border-radius: 8px; padding: 6px 13px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.accept-btn:hover { background: rgba(139,124,246,0.12); }
+.accept-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.accept-reason {
+  flex: 1 1 260px; background: var(--panel-2); border: 1px solid var(--line);
+  color: var(--ink); border-radius: 8px; padding: 8px 11px; font: inherit; font-size: 14px;
+}
+.accept-reason:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.accept-confirm { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+.accept-cancel { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font: inherit; cursor: pointer; }
+.accept-confirm:disabled, .accept-cancel:disabled { opacity: 0.5; cursor: progress; }
+.accept-error { flex-basis: 100%; color: var(--red); font-size: 13px; }

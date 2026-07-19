@@ -1,4 +1,5 @@
 import type { CheckOutput } from "./types.js";
+import { planActions } from "./actions.js";
 
 /**
  * The structured report for the coding agent, written to stdout.
@@ -9,6 +10,7 @@ import type { CheckOutput } from "./types.js";
  */
 export function renderAgentReport(output: CheckOutput): string {
   const { path, mode, findings, score, categories } = output;
+  const actions = planActions(output);
   const payload = {
     tool: "revivify",
     command: "check",
@@ -40,6 +42,10 @@ export function renderAgentReport(output: CheckOutput): string {
       : {}),
     ...(output.intent ? { intent: output.intent } : {}),
     ...(output.accept && Object.keys(output.accept).length > 0 ? { accept: output.accept } : {}),
+    // Triage-as-actions: the own-the-fix loop the agent drives (decision-log #20).
+    // well-fix-it = an ordered fix plan the agent applies; your-call = a human
+    // decision queue, never auto-applied; just-so-you-know = informational.
+    actions,
     findings: findings.map((f) => ({
       id: f.id,
       title: f.title,

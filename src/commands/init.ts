@@ -157,6 +157,21 @@ ${categoryLines}
 ## Specific checks (run on every audit)
 ${checkLines}
 
+## The own-the-fix loop
+When \`revivify check\` finds problems, work them in one pass — Revivify never
+edits your files, so **you** apply the fixes:
+
+1. **We'll fix it** — safe, mechanical fixes. Apply them yourself in the order
+   listed, all in **one batch** (they're defined-safe, so one approval covers them).
+2. **Your call** — judgment calls (e.g. a brand-driven low-contrast choice).
+   **Never apply these silently.** Surface each to the human to **fix or accept**;
+   record an accepted one in the \`accept:\` block of \`${CONFIG_FILENAME}\` with a
+   reason, so it stops holding the page below the bar without being faked as a pass.
+3. **Just so you know** — informational; no action needed.
+
+Then **re-check**: run \`revivify check\` again (the Stop hook does this
+automatically when you finish a turn) and repeat until the page is ship-ready.
+
 ## Definition of done
 "Done" means **passing the gate**: run \`revivify check\` and reach the
 ship-ready bar in \`.revivify.yaml\` (default ${DEFAULT_THRESHOLD}/10 — every

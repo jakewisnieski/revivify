@@ -39,3 +39,21 @@ test("an unresolved your-call is named as a decision the human still owes", () =
   assert.match(report, /1 your-call decision to make/); // footer
   assert.doesNotMatch(report, /Ship-ready/);
 });
+
+test("the plan frames the well-fix-it batch as one approval and never offers to auto-fix your-call", () => {
+  const report = render([
+    finding("html-lang", "fail", "well-fix-it"),
+    finding("noindex", "fail", "your-call"),
+  ]);
+  assert.match(report, /My plan — approve in one step/);
+  // The safe batch is proposed as a single approval…
+  assert.match(report, /I can safely fix the 1 "we'll fix it" check above/);
+  // …and the your-call item is explicitly hands-off, not auto-fixed.
+  assert.match(report, /yours to settle — I won't touch it/);
+});
+
+test("a ship-ready page shows no plan block", () => {
+  const report = render([finding("html-lang", "pass", "well-fix-it")]);
+  assert.doesNotMatch(report, /My plan/);
+  assert.match(report, /Ship-ready/);
+});

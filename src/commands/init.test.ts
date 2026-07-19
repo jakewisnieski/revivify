@@ -94,6 +94,14 @@ test("renderGuardrails cites every live rule's standard and every category", () 
   }
 });
 
+test("renderGuardrails documents the own-the-fix loop for the agent", () => {
+  const pack = renderGuardrails();
+  assert.match(pack, /own-the-fix loop/i);
+  assert.match(pack, /We'll fix it/); // apply the safe batch
+  assert.match(pack, /Your call/); // surface to the human, never silently applied
+  assert.match(pack, /re-check/i); // loop closes by re-running the check
+});
+
 test("renderPlan states the definition of done and the ship-ready bar", () => {
   const plan = renderPlan();
   assert.match(plan, /definition of done/i);

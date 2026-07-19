@@ -4,9 +4,9 @@
 
 Revivify is a quality gate for **people who build software with AI but don't write code themselves.** It steers your coding agent toward established best practices up front, then checks the result against **citable standards** — WCAG 2.2, Core Web Vitals, Google Search Essentials — and hands you a plain-language, ship-or-don't verdict.
 
-![The Revivify cockpit: a page scores 9/10 with a "your call" judgment item, you accept it with a reason, and the trust dial clears to 10/10 Ship-ready](docs/assets/revivify-cockpit.gif)
+![The Revivify cockpit: a landing page that looks done fails its checks, then "Apply the safe fixes" and accepting one judgment call clear the trust dial to 10/10 Ship-ready](docs/assets/revivify-cockpit.webp)
 
-*The cockpit (`revivify ui`) on a real landing page: it lands at **9/10** because a leftover `noindex` is a judgment call only you can make — accept it with a reason, and the trust dial clears to **10/10 · Ship-ready**. Every check cites the exact standard behind it.*
+*The cockpit (`revivify ui`) on a real landing page: it lands **below the bar**, Revivify **applies the safe fixes** on approval (each sourced honestly, never guessed), you **accept** the one judgment call — a leftover `noindex` — and the trust dial clears to **10/10 · Ship-ready**. Every check cites the exact standard behind it.*
 
 ## See it on a real page
 

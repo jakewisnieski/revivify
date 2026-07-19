@@ -5,7 +5,7 @@ import type { Score } from "../score.js";
 import type { RevivifyConfig } from "../config.js";
 
 function score(outOfTen: number, shipReady = outOfTen >= 10): Score {
-  return { passing: outOfTen, applicable: 10, outOfTen, shipReady };
+  return { passing: outOfTen, applicable: 10, outOfTen, shipReady, yourCall: [] };
 }
 
 const warn: RevivifyConfig = { threshold: 10, enforcement: "warn" };

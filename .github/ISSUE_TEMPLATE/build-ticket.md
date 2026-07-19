@@ -1,6 +1,6 @@
 ---
 name: Build ticket (milestone module)
-about: A self-contained work order for a milestone build module — carries its own acceptance walkthrough and close-out
+about: A self-contained work order for a milestone build module — carries its own acceptance scenarios and close-out
 title: "type: short outcome [Mn]"
 labels: []
 assignees: []
@@ -28,20 +28,21 @@ Add a type label + the `mN` label. See docs/github-workflow.md and docs/build-ga
 <!-- Traceability: the PRD FRs / decision-log entries / decisions this draws on.
      e.g. "FR-8; decision-log #9 (ship-ready = 10/10)". -->
 
-## Intent seed (for `/no-mistakes` — finalized at build time, Jake quick-confirms)
-<!-- A charter-level --intent for the automated review: the goal, the DELIBERATE
-     choices a reviewer should NOT flag (with the reason), constraints ruled in/out,
-     and anything in the diff that would surprise a reviewer. Composed at build time
+## Intent seed (for the review gate — finalized at build time, Jake quick-confirms)
+<!-- A charter-level intent for the review: the goal, the DELIBERATE choices a
+     reviewer should NOT flag (with the reason), constraints ruled in/out, and
+     anything in the diff that would surprise a reviewer. Composed at build time
      from this seed + the as-built decisions. See docs/build-gate.md. -->
 >
 
-## Acceptance walkthrough (Jake runs — Gate 1)
-<!-- Runnable SOP scenarios: exact command/click + the explicit PASS condition.
-     Non-UI modules ship a `try:<thing>` script or example fixtures.
-     This is the per-ticket UAT; the milestone roll-up in docs/uat/ sequences these. -->
+## Acceptance scenarios (Claude self-verifies in Gate 0)
+<!-- Runnable scenarios: exact command/click + the explicit PASS condition.
+     Non-UI modules use example fixtures. Claude runs each and records the
+     command + observed output in the PR. Jake's human acceptance is the
+     milestone visual cockpit walkthrough (docs/walkthroughs/), not this. -->
 - **S1 <name>:** `<command>` — **PASS:** <what you should see>.
 - **S2 <name>:** `<command>` — **PASS:** <…>.
 
 ## Close-out (standard runbook)
-<!-- The two gates from docs/build-gate.md; Claude never self-merges. -->
-Gate 0 (`/no-mistakes` on a feature branch → PR green + review clean) → Gate 1 (Jake runs the Acceptance walkthrough → all-PASS → approves) → squash-merge + delete branch. The PR carries `Closes #<this>`.
+<!-- Gate 0 from docs/build-gate.md; Claude never self-merges. -->
+Gate 0 (feature branch → CI green + `/code-review` clean + acceptance scenarios self-verified in the PR) → squash-merge + delete branch. The PR carries `Closes #<this>`. Human acceptance is the milestone visual walkthrough before the release tag.

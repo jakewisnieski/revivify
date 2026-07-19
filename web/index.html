@@ -48,6 +48,9 @@
 
       <!-- Results -->
       <section id="results" class="hidden">
+        <!-- Captured page intent (or a nudge to add it) -->
+        <div id="intent" class="card intent hidden"></div>
+
         <div class="verdict card">
           <div class="dial">
             <div class="dial-num"><span id="score">–</span><span class="dial-den">/10</span></div>
@@ -57,6 +60,15 @@
             <div id="verdict-badge" class="badge">—</div>
             <div id="verdict-note" class="verdict-note"></div>
           </div>
+        </div>
+
+        <!-- The own-the-fix plan: the safe batch as one approval + your-call as decisions -->
+        <div id="plan" class="card plan hidden"></div>
+
+        <!-- "Your call" — judgment items only the human can settle -->
+        <div id="yourcall-card" class="card hidden">
+          <h2>Your call <span class="muted">— judgment items only you can settle</span></h2>
+          <ul id="yourcall" class="rules"></ul>
         </div>
 
         <div class="card">

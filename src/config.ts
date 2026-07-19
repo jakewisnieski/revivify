@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 /** The config file `revivify init` scaffolds and the gate reads. */
@@ -133,4 +133,58 @@ function readAccept(source: string): Record<string, string> {
     if (value) out[entry[1]] = value;
   }
   return out;
+}
+
+/**
+ * Record a "your call" acceptance in `.revivify.yaml` — the mechanism behind the
+ * cockpit's Accept control (M4.6), so a user never hand-edits YAML.
+ *
+ * A text-surgery upsert (same tolerant-reader spirit as {@link readAccept}, not a
+ * full YAML rewrite) so it preserves the rest of the file — threshold,
+ * enforcement, other accepts, rule toggles, comments. The reason is sanitised to
+ * a single quoted line so it round-trips through the naive reader; a blank reason
+ * is rejected upstream (decision-log #18 — no acceptance without a reason).
+ */
+export function writeAccept(source: string, id: string, reason: string): string {
+  const clean = String(reason).replace(/[\r\n]+/g, " ").replace(/"/g, "'").trim();
+  const entry = `  ${id}: "${clean}"`;
+  const lines = source.split(/\r?\n/);
+  const start = lines.findIndex((l) => /^accept:/.test(l));
+
+  // No accept block yet — append one at the end.
+  if (start === -1) {
+    const base = source.replace(/\s*$/, "");
+    return `${base}${base ? "\n" : ""}accept:\n${entry}\n`;
+  }
+
+  // `accept: {}` (or any inline value) — turn it into a block with this entry.
+  if (lines[start].slice("accept:".length).trim().startsWith("{")) {
+    lines[start] = "accept:";
+    lines.splice(start + 1, 0, entry);
+    return lines.join("\n");
+  }
+
+  // Block form — update this id in place if present, else insert as the first entry.
+  let existing = -1;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^\s*$/.test(lines[i])) continue; // blanks don't end the block
+    if (!/^\s/.test(lines[i])) break; // a dedent to column 0 ends the block
+    const m = lines[i].match(/^\s+([\w.-]+):/);
+    if (m && m[1] === id) existing = i;
+  }
+  if (existing !== -1) lines[existing] = entry;
+  else lines.splice(start + 1, 0, entry);
+  return lines.join("\n");
+}
+
+/** Read `.revivify.yaml`, upsert the acceptance, and write it back (M4.6). */
+export async function upsertAccept(dir: string, id: string, reason: string): Promise<void> {
+  const file = join(dir, CONFIG_FILENAME);
+  let source = "";
+  try {
+    source = await readFile(file, "utf8");
+  } catch {
+    source = "";
+  }
+  await writeFile(file, writeAccept(source, id, reason), "utf8");
 }

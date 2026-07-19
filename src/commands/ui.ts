@@ -1,8 +1,9 @@
-import { createServer, type ServerResponse } from "node:http";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { spawn } from "node:child_process";
-import { check } from "./check.js";
+import { check, projectDirOf } from "./check.js";
+import { upsertAccept } from "../config.js";
 import type { ProgressEvent } from "../engine/lighthouse.js";
 
 const WEB_DIR = resolve(import.meta.dirname, "..", "..", "web");
@@ -19,6 +20,19 @@ const CONTENT_TYPES: Record<string, string> = {
 /** Send one Server-Sent Event. */
 function sse(res: ServerResponse, event: string, data: unknown): void {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+}
+
+/** Read a request body up to a small cap (the accept payload is tiny JSON). */
+function readBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 64_000) reject(new Error("payload too large"));
+    });
+    req.on("end", () => resolve(body));
+    req.on("error", reject);
+  });
 }
 
 /** Best-effort: open the given URL in the user's default browser. */
@@ -78,6 +92,32 @@ export async function runUi(initialPath: string): Promise<number> {
         sse(res, "failed", { message: err instanceof Error ? err.message : String(err) });
       }
       res.end();
+      return;
+    }
+
+    // Record a "your call" acceptance from the cockpit — writes to the project's
+    // .revivify.yaml so the user never hand-edits YAML (M4.6). A reason is required
+    // (decision-log #18); we write only Revivify's own config, never page code (#20).
+    if (url.pathname === "/api/accept" && req.method === "POST") {
+      try {
+        const { path, id, reason } = JSON.parse(await readBody(req)) as {
+          path?: string;
+          id?: string;
+          reason?: string;
+        };
+        if (!id || !reason || !reason.trim()) {
+          res.writeHead(400, { "content-type": "application/json" });
+          res.end(JSON.stringify({ error: "An acceptance needs a reason." }));
+          return;
+        }
+        const dir = await projectDirOf(path?.trim() || initialPath);
+        await upsertAccept(dir, id, reason);
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (err) {
+        res.writeHead(500, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }));
+      }
       return;
     }
 

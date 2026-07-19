@@ -48,6 +48,68 @@ const learnMore = (f) =>
     ? ` <a class="learn" href="${esc(f.learnMore)}" target="_blank" rel="noopener">Learn more ↗</a>`
     : "";
 
+// Record a "your call" acceptance server-side (writes the reason into
+// .revivify.yaml), then re-check so the dial reflects the bar clearing (M4.6).
+async function postAccept(id, reason) {
+  const res = await fetch("/api/accept", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ path: $("path").value.trim(), id, reason }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Couldn't save the acceptance.");
+  }
+}
+
+// Wire the inline Accept form on an unresolved your-call item. A reason is
+// required (decision #18); we use an inline field, never a browser prompt().
+function wireAccept(li, id) {
+  const btn = li.querySelector(".accept-btn");
+  const form = li.querySelector(".accept-form");
+  const input = li.querySelector(".accept-reason");
+  const confirm = li.querySelector(".accept-confirm");
+  const cancel = li.querySelector(".accept-cancel");
+  const err = li.querySelector(".accept-error");
+
+  btn.addEventListener("click", () => {
+    btn.classList.add("hidden");
+    form.classList.remove("hidden");
+    input.focus();
+  });
+  cancel.addEventListener("click", () => {
+    form.classList.add("hidden");
+    btn.classList.remove("hidden");
+    err.hidden = true;
+    input.value = "";
+  });
+
+  const submit = async () => {
+    const reason = input.value.trim();
+    if (!reason) {
+      err.textContent = "A reason is required to accept.";
+      err.hidden = false;
+      input.focus();
+      return;
+    }
+    confirm.disabled = true;
+    cancel.disabled = true;
+    try {
+      await postAccept(id, reason);
+      run(); // re-check → the item flips to "accepted" and the dial clears
+    } catch (e) {
+      err.textContent = e.message;
+      err.hidden = false;
+      confirm.disabled = false;
+      cancel.disabled = false;
+    }
+  };
+  confirm.addEventListener("click", submit);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") submit();
+  });
+}
+
 function render(out) {
   $("live").classList.add("hidden");
   const s = out.score;
@@ -117,9 +179,18 @@ function render(out) {
       html += `<div class="rule-accepted">Accepted: “${esc(y.reason)}”</div>`;
     } else {
       if (f.fix) html += `<div class="rule-fix"><span class="arrow">→</span> ${esc(f.fix)}</div>`;
-      html += `<div class="rule-hint">Your call: fix it, or accept it with a reason in <code>.revivify.yaml</code> (<code>accept:</code>).</div>`;
+      html += `<div class="yc-accept">
+        <button type="button" class="accept-btn">Accept this — it's intentional</button>
+        <div class="accept-form hidden">
+          <input type="text" class="accept-reason" maxlength="200" placeholder="Why is this OK? (a reason is required)" />
+          <button type="button" class="accept-confirm">Confirm</button>
+          <button type="button" class="accept-cancel">Cancel</button>
+          <div class="accept-error" hidden></div>
+        </div>
+      </div>`;
     }
     li.innerHTML = html + `</div>`;
+    if (y.status !== "accepted") wireAccept(li, y.id);
     ycList.appendChild(li);
   }
   ycCard.classList.toggle("hidden", yourCall.length === 0);

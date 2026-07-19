@@ -7,6 +7,8 @@ import {
   parseConfig,
   loadConfig,
   loadIntent,
+  writeAccept,
+  upsertAccept,
   CONFIG_FILENAME,
   INTENT_FILENAME,
   DEFAULT_THRESHOLD,
@@ -95,6 +97,54 @@ test("parseConfig stops the accept block at the next top-level key", () => {
   const config = parseConfig(source);
   assert.deepEqual(config.accept, { "a-rule": "kept" });
   assert.equal(config.threshold, 8);
+});
+
+// --- writing acceptances (the cockpit Accept control, M4.6) ---
+
+test("writeAccept turns the scaffold's `accept: {}` into a block and preserves other keys", () => {
+  const out = writeAccept("threshold: 10\nenforcement: warn\naccept: {}\n", "noindex", "staging site");
+  const cfg = parseConfig(out);
+  assert.equal(cfg.accept?.noindex, "staging site");
+  assert.equal(cfg.threshold, 10); // untouched
+  assert.equal(cfg.enforcement, "warn"); // untouched
+});
+
+test("writeAccept appends an accept block when none exists, keeping existing keys", () => {
+  const out = writeAccept("threshold: 8\n", "noindex", "reason");
+  assert.deepEqual(parseConfig(out).accept, { noindex: "reason" });
+  assert.equal(parseConfig(out).threshold, 8);
+});
+
+test("writeAccept adds to an existing block without dropping other acceptances", () => {
+  const src = 'accept:\n  color-contrast: "brand"\nthreshold: 10\n';
+  const cfg = parseConfig(writeAccept(src, "noindex", "staging"));
+  assert.deepEqual(cfg.accept, { "color-contrast": "brand", noindex: "staging" });
+  assert.equal(cfg.threshold, 10);
+});
+
+test("writeAccept updates an existing acceptance in place (no duplicate)", () => {
+  const out = writeAccept('accept:\n  noindex: "old"\n', "noindex", "new reason");
+  assert.deepEqual(parseConfig(out).accept, { noindex: "new reason" });
+  assert.equal((out.match(/noindex:/g) ?? []).length, 1);
+});
+
+test("writeAccept sanitises quotes and newlines so the reason round-trips", () => {
+  const out = writeAccept("accept: {}\n", "noindex", 'has "quotes"\nand a newline');
+  assert.equal(parseConfig(out).accept?.noindex, "has 'quotes' and a newline");
+});
+
+test("upsertAccept writes the acceptance to disk, preserving the rest of the config", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "revivify-accept-"));
+  try {
+    await writeFile(join(dir, CONFIG_FILENAME), "threshold: 10\nenforcement: warn\naccept: {}\n", "utf8");
+    await upsertAccept(dir, "noindex", "staging site — hidden until launch");
+    const cfg = await loadConfig(dir);
+    assert.equal(cfg.accept?.noindex, "staging site — hidden until launch");
+    assert.equal(cfg.threshold, 10);
+    assert.equal(cfg.enforcement, "warn");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 // --- page intent (.revivify/intent.md) ---

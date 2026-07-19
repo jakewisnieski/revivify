@@ -4,6 +4,7 @@ import { loadPage } from "../loadPage.js";
 import { rules as staticRules } from "../checks/registry.js";
 import { runLighthouse } from "../engine/lighthouse.js";
 import { mapReportToFindings } from "../checks/lighthouse.js";
+import { partitionByToggles } from "../checks/toggles.js";
 import { scoreFindings } from "../score.js";
 import { loadIntent, loadConfig } from "../config.js";
 import { renderHumanReport } from "../report/human.js";
@@ -41,6 +42,8 @@ export async function check(path: string, options: CheckOptions): Promise<CheckO
   const projectDir = await projectDirOf(path);
   const [intent, config] = await Promise.all([loadIntent(projectDir), loadConfig(projectDir)]);
   const accept = config.accept ?? {};
+  const ruleToggles = config.rules ?? {};
+  const categoryToggles = config.categories ?? {};
   const context = {
     ...(intent ? { intent } : {}),
     ...(Object.keys(accept).length > 0 ? { accept } : {}),
@@ -48,31 +51,42 @@ export async function check(path: string, options: CheckOptions): Promise<CheckO
 
   if (options.mode === "fast") {
     const page = await loadPage(path);
-    const findings: Finding[] = staticRules.map((rule) => ({
+    const all: Finding[] = staticRules.map((rule) => ({
       id: rule.id,
       title: rule.title,
       standard: rule.standard,
       learnMore: rule.learnMore,
       ...rule.run(page),
     }));
+    // Honor `.revivify.yaml` rule toggles: a disabled check drops from the score
+    // but stays visible as "disabled by config" (M5.3 / FR-10).
+    const { active, disabled } = partitionByToggles(all, ruleToggles, categoryToggles);
     return {
       path: page.path,
       mode: "fast",
-      findings,
-      score: scoreFindings(findings, accept),
+      findings: active,
+      ...(disabled.length > 0 ? { disabled } : {}),
+      score: scoreFindings(active, accept),
       ...context,
     };
   }
 
   const report = await runLighthouse(path, { onProgress: options.onProgress });
   options.onProgress?.({ phase: "done", message: "Scoring the results…" });
-  const findings = mapReportToFindings(report);
+  const all = mapReportToFindings(report);
+  const { active, disabled } = partitionByToggles(all, ruleToggles, categoryToggles);
+  // Drop a fully-disabled category from the shown Lighthouse scores too, so the
+  // header never advertises a category the user turned off.
+  const categories = Object.fromEntries(
+    Object.entries(report.categories).filter(([id]) => categoryToggles[id] !== false),
+  );
   return {
     path,
     mode: "full",
-    findings,
-    score: scoreFindings(findings, accept),
-    categories: report.categories,
+    findings: active,
+    ...(disabled.length > 0 ? { disabled } : {}),
+    score: scoreFindings(active, accept),
+    categories,
     ...context,
   };
 }

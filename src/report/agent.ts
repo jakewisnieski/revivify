@@ -42,6 +42,17 @@ export function renderAgentReport(output: CheckOutput): string {
       : {}),
     ...(output.intent ? { intent: output.intent } : {}),
     ...(output.accept && Object.keys(output.accept).length > 0 ? { accept: output.accept } : {}),
+    // Checks turned off by `.revivify.yaml` toggles — dropped from the score but
+    // surfaced so a disabled check is never a silent green (M5.3 / FR-10).
+    ...(output.disabled && output.disabled.length > 0
+      ? {
+          disabled: output.disabled.map((f) => ({
+            id: f.id,
+            title: f.title,
+            standard: f.standard,
+          })),
+        }
+      : {}),
     // Triage-as-actions: the own-the-fix loop the agent drives (decision-log #20).
     // well-fix-it = an ordered fix plan the agent applies; your-call = a human
     // decision queue, never auto-applied; just-so-you-know = informational.

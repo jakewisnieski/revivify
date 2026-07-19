@@ -29,12 +29,27 @@ export interface RevivifyConfig {
    * call clears the bar without being faked as a pass (decision-log #18).
    */
   accept?: Record<string, string>;
+  /**
+   * Per-check toggles from the `rules:` block (check id → enabled). Only an
+   * explicit `false` turns a check off; a missing or `true` entry leaves it on.
+   * Consumed by `check`/`gate` (M5.3, FR-10) — a disabled check drops from the
+   * denominator but stays visible as "disabled by config", never faked as a pass.
+   */
+  rules?: Record<string, boolean>;
+  /**
+   * Per-category toggles from the `categories:` block (Lighthouse category →
+   * enabled). Turns off every full-audit check in that category. Same
+   * explicit-`false`-only, honest-drop semantics as {@link rules}.
+   */
+  categories?: Record<string, boolean>;
 }
 
 export const DEFAULT_CONFIG: RevivifyConfig = {
   threshold: DEFAULT_THRESHOLD,
   enforcement: DEFAULT_ENFORCEMENT,
   accept: {},
+  rules: {},
+  categories: {},
 };
 
 /**
@@ -50,7 +65,37 @@ export function parseConfig(source: string): RevivifyConfig {
     threshold: readNumber(source, "threshold") ?? DEFAULT_THRESHOLD,
     enforcement: readEnforcement(source) ?? DEFAULT_ENFORCEMENT,
     accept: readAccept(source),
+    rules: readToggles(source, "rules"),
+    categories: readToggles(source, "categories"),
   };
+}
+
+/**
+ * Read a `key:` block of `id: true|false` toggles — the `rules:` and
+ * `categories:` blocks `init` scaffolds. Same tolerant block-scan as
+ * {@link readAccept}: an inline value (`rules: {}`) or an absent block yields an
+ * empty map, and any line whose value isn't a clean boolean is skipped — so a
+ * garbled toggle falls back to the safe default (on) instead of turning a check
+ * off by accident. Only entries present here can flip a check off.
+ */
+function readToggles(source: string, key: string): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  const lines = source.split(/\r?\n/);
+  const start = lines.findIndex((l) => new RegExp(`^${key}:`).test(l));
+  if (start === -1) return out;
+
+  // `rules: {}` (or any inline value) → no nested entries.
+  if (lines[start].slice(`${key}:`.length).trim().startsWith("{")) return out;
+
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*$/.test(line)) continue; // blank lines don't end the block
+    if (!/^\s/.test(line)) break; // a dedent to column 0 ends the block
+    const entry = line.match(/^\s+([\w.-]+):\s*(true|false)\s*(?:#.*)?$/i);
+    if (!entry) continue; // non-boolean value → leave the check at its default (on)
+    out[entry[1]] = entry[2].toLowerCase() === "true";
+  }
+  return out;
 }
 
 /**

@@ -103,6 +103,14 @@ export function renderHumanReport(output: CheckOutput): string {
     lines.push("");
   }
 
+  const disabled = output.disabled ?? [];
+  if (disabled.length > 0) {
+    lines.push(
+      `  (Disabled in ${CONFIG_FILENAME}, not scored: ${disabled.map((f) => f.title).join(", ")})`,
+    );
+    lines.push("");
+  }
+
   // The own-the-fix plan: frame the safe batch as one approval, keep your-call
   // items out of it (decision-log #20 — "we'll fix it" is defined-safe; your-call
   // is decided individually and never auto-applied).

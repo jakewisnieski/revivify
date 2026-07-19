@@ -1,5 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="A leafy pothos plant">
-  <rect width="800" height="450" fill="#e8f5e9"/>
-  <circle cx="400" cy="225" r="130" fill="#66bb6a"/>
-  <text x="400" y="235" font-family="sans-serif" font-size="30" fill="#1b5e20" text-anchor="middle">Bloom</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="440" viewBox="0 0 560 440" role="img" aria-label="A potted monstera plant in soft daylight">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eaf5ee"/>
+      <stop offset="1" stop-color="#d3ead9"/>
+    </linearGradient>
+    <linearGradient id="pot" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6a86b"/>
+      <stop offset="1" stop-color="#c9843f"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3f9d63"/>
+      <stop offset="1" stop-color="#1f7a45"/>
+    </linearGradient>
+    <linearGradient id="leaf2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#57b877"/>
+      <stop offset="1" stop-color="#2e8c53"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="560" height="440" rx="24" fill="url(#bg)"/>
+  <circle cx="280" cy="196" r="150" fill="#ffffff" opacity="0.45"/>
+
+  <!-- foliage -->
+  <g transform="translate(280 210)">
+    <path d="M0 0 C-120 -30 -150 -150 -70 -210 C-30 -150 -20 -70 0 0 Z" fill="url(#leaf2)"/>
+    <path d="M0 0 C120 -30 150 -150 70 -210 C30 -150 20 -70 0 0 Z" fill="url(#leaf2)"/>
+    <path d="M0 0 C-70 -70 -70 -190 0 -250 C70 -190 70 -70 0 0 Z" fill="url(#leaf)"/>
+    <path d="M0 -18 C-40 -80 -36 -170 0 -215 C36 -170 40 -80 0 -18 Z" fill="#248a4e"/>
+    <!-- leaf midribs -->
+    <path d="M0 0 L0 -232" stroke="#0f5132" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
+    <path d="M0 -6 L-58 -186" stroke="#0f5132" stroke-width="2.5" fill="none" opacity="0.35" stroke-linecap="round"/>
+    <path d="M0 -6 L58 -186" stroke="#0f5132" stroke-width="2.5" fill="none" opacity="0.35" stroke-linecap="round"/>
+  </g>
+
+  <!-- pot -->
+  <g transform="translate(280 210)">
+    <rect x="-78" y="0" width="156" height="24" rx="8" fill="#d99a5b"/>
+    <path d="M-70 24 L70 24 L54 132 C52 146 42 154 28 154 L-28 154 C-42 154 -52 146 -54 132 Z" fill="url(#pot)"/>
+    <ellipse cx="0" cy="24" rx="70" ry="12" fill="#8a5222" opacity="0.35"/>
+  </g>
+
+  <!-- ground shadow -->
+  <ellipse cx="280" cy="382" rx="120" ry="16" fill="#1f7a45" opacity="0.12"/>
 </svg>

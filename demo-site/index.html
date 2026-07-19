@@ -1,33 +1,118 @@
+<!-- ─────────────────────────────────────────────────────────────────────────
+     Bloom — the Revivify demo landing page.
+
+     This page is styled to LOOK shippable, but it hides the exact defects an
+     AI coding agent hands a non-developer without guardrails. That's the whole
+     point of the demo: it looks done, but it fails silently. Run
+     `revivify check ./demo-site` and watch it land below the bar, then fix the
+     safe ones and accept the judgment call to reach 10/10. See README.md.
+
+     Seeded on purpose (do not "fix" without updating README.md):
+       1. <html> has NO lang attribute        → html-lang       (we'll fix it)
+       2. the hero <img> has NO alt text       → img-alt         (we'll fix it)
+       3. NO <meta name="description">         → meta-description (we'll fix it)
+       4. a leftover <meta robots "noindex">   → noindex         (YOUR CALL)
+     ──────────────────────────────────────────────────────────────────────── -->
 <!doctype html>
-<!-- A deliberately imperfect demo landing page, so `revivify check` has something to find.
-     Seeded issues: no <html lang>, no meta description, and a hero <img> with no alt. -->
 <html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Bloom — houseplants that thrive on neglect</title>
+    <!-- Seed #4 (your call): a leftover noindex from staging that would hide
+         this page from Google. Deliberate here so the cockpit can show Accept. -->
+    <meta name="robots" content="noindex" />
+    <!-- Seed #3: no <meta name="description"> — Google will write the snippet for us. -->
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header>
-      <img src="logo.svg" alt="Bloom" width="120" height="40" />
-      <nav>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Bloom home">
+        <img src="logo.svg" alt="Bloom" width="132" height="36" />
+      </a>
+      <nav class="nav" aria-label="Primary">
         <a href="#features">Features</a>
         <a href="#pricing">Pricing</a>
-        <a href="#signup">Get early access</a>
+        <a href="#reviews">Reviews</a>
+        <a class="btn btn-ghost" href="#signup">Get early access</a>
       </nav>
     </header>
 
-    <main>
-      <section id="hero">
-        <h1>Plants that forgive you</h1>
-        <p>Low-light, low-water houseplants picked to survive real life. Shipped to your door.</p>
-        <img src="hero.svg" width="800" height="450" />
-        <a href="#signup" class="cta">Get early access</a>
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Now shipping across the US</p>
+          <h1>Plants that forgive you</h1>
+          <p class="lede">
+            Low-light, low-water houseplants, hand-picked to survive real life and
+            delivered to your door — already potted, already thriving.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#signup">Get early access</a>
+            <a class="btn btn-text" href="#features">See how it works →</a>
+          </div>
+          <p class="reassure">No green thumb required · 30-day replant guarantee</p>
+        </div>
+        <!-- Seed #2: the hero image has NO alt attribute. -->
+        <img class="hero-img" src="hero.svg" width="560" height="440" />
+      </section>
+
+      <section id="features" class="features">
+        <h2>Built for people who forget to water things</h2>
+        <div class="grid">
+          <article class="feature">
+            <span class="feature-mark" aria-hidden="true">🌿</span>
+            <h3>Neglect-proof picks</h3>
+            <p>Every plant is chosen to bounce back from a missed week — or three.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-mark" aria-hidden="true">📦</span>
+            <h3>Arrives ready</h3>
+            <p>Potted, soiled, and settled in transit-safe packaging. Unbox and place.</p>
+          </article>
+          <article class="feature">
+            <span class="feature-mark" aria-hidden="true">💬</span>
+            <h3>Text-a-botanist</h3>
+            <p>Something looks off? Snap a photo and a real botanist replies same day.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="pricing" class="pricing">
+        <h2>One plan, no surprises</h2>
+        <div class="plan">
+          <p class="plan-price"><span class="plan-amount">$29</span> / month</p>
+          <ul class="plan-list">
+            <li>A new hand-picked plant every month</li>
+            <li>Free replacement if it doesn't make it</li>
+            <li>Pause or cancel anytime</li>
+          </ul>
+          <a class="btn btn-primary" href="#signup">Start with one plant</a>
+        </div>
+      </section>
+
+      <section id="reviews" class="reviews">
+        <h2>Loved by chronic under-waterers</h2>
+        <blockquote class="quote">
+          <p>“I have killed every plant I've ever owned. This one is somehow still alive.”</p>
+          <footer>— Priya R., verified subscriber</footer>
+        </blockquote>
+      </section>
+
+      <section id="signup" class="signup">
+        <h2>Get early access</h2>
+        <p>Be first in line when we open in your city. No spam, just leaves.</p>
+        <a class="btn btn-primary btn-lg" href="#signup">Join the waitlist</a>
       </section>
     </main>
 
-    <footer>
+    <footer class="site-footer">
       <p>© 2026 Bloom. Made for people who forget to water things.</p>
+      <nav aria-label="Footer">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#signup">Early access</a>
+      </nav>
     </footer>
   </body>
 </html>

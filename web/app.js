@@ -156,12 +156,15 @@ function render(out) {
   const byId = new Map(findings.map((f) => [f.id, f]));
   const unresolved = yourCall.filter((y) => y.status === "unresolved");
 
-  // Captured intent — or a nudge to add it (M4.1).
+  // Captured intent — or a nudge to add it (M4.1). On a live URL there's no
+  // local project, so intent/fixes/accept are read-only (FR-1's URL path).
   const intentEl = $("intent");
   intentEl.classList.remove("hidden");
-  intentEl.innerHTML = out.intent
-    ? `<div class="intent-head">Your page intent <span class="muted">— .revivify/intent.md</span></div><div class="intent-body">${esc(out.intent)}</div>`
-    : `<div class="intent-head muted">Tip: add <code>.revivify/intent.md</code> so deliberate choices aren't flagged as mistakes.</div>`;
+  intentEl.innerHTML = out.readOnly
+    ? `<div class="intent-head muted">Live URL — read-only. Revivify scores the page but can't write fixes, intent, or acceptances to a site it doesn't own. Point it at a local build to steer it.</div>`
+    : out.intent
+      ? `<div class="intent-head">Your page intent <span class="muted">— .revivify/intent.md</span></div><div class="intent-body">${esc(out.intent)}</div>`
+      : `<div class="intent-head muted">Tip: add <code>.revivify/intent.md</code> so deliberate choices aren't flagged as mistakes.</div>`;
 
   const dial = document.querySelector(".dial");
   const dialColor = s.shipReady ? "var(--accent)" : s.outOfTen >= 5 ? "var(--amber)" : "var(--red)";
@@ -196,11 +199,13 @@ function render(out) {
     if (unresolved.length)
       html += `<li><span class="dot your"></span> <b>${unresolved.length}</b> “your call” item${unresolved.length === 1 ? "" : "s"} — yours to settle (fix, or accept with a reason). I won't touch ${unresolved.length === 1 ? "it" : "them"}.</li>`;
     html += `</ul>`;
-    if (fixable.length)
+    if (fixable.length && out.readOnly)
+      html += `<div class="apply-row"><span class="apply-note muted">Read-only on a live URL — Revivify can't apply fixes to a site it doesn't own. Run it on a local build to apply them.</span></div>`;
+    else if (fixable.length)
       html += `<div class="apply-row"><button type="button" class="apply-fixes-btn">Apply the ${fixable.length} safe fix${fixable.length === 1 ? "" : "es"}</button><span class="apply-note muted" hidden></span></div>`;
     planEl.innerHTML = html;
     planEl.classList.remove("hidden");
-    wireApplyFixes();
+    if (!out.readOnly) wireApplyFixes();
   } else {
     planEl.classList.add("hidden");
   }
@@ -219,6 +224,9 @@ function render(out) {
     if (f.detail) html += `<div class="rule-detail">${esc(f.detail)}${learnMore(f)}</div>`;
     if (y.status === "accepted") {
       html += `<div class="rule-accepted">Accepted: “${esc(y.reason)}”</div>`;
+    } else if (out.readOnly) {
+      if (f.fix) html += `<div class="rule-fix"><span class="arrow">→</span> ${esc(f.fix)}</div>`;
+      html += `<div class="rule-accepted muted">Read-only on a live URL — resolve this from a local project (no <code>.revivify.yaml</code> to record an acceptance in).</div>`;
     } else {
       if (f.fix) html += `<div class="rule-fix"><span class="arrow">→</span> ${esc(f.fix)}</div>`;
       html += `<div class="yc-accept">
@@ -232,7 +240,7 @@ function render(out) {
       </div>`;
     }
     li.innerHTML = html + `</div>`;
-    if (y.status !== "accepted") wireAccept(li, y.id);
+    if (y.status !== "accepted" && !out.readOnly) wireAccept(li, y.id);
     ycList.appendChild(li);
   }
   ycCard.classList.toggle("hidden", yourCall.length === 0);

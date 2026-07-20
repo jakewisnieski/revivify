@@ -6,7 +6,8 @@ import { runLighthouse } from "../engine/lighthouse.js";
 import { mapReportToFindings } from "../checks/lighthouse.js";
 import { partitionByToggles } from "../checks/toggles.js";
 import { scoreFindings } from "../score.js";
-import { loadIntent, loadConfig } from "../config.js";
+import { loadIntent, loadConfig, DEFAULT_CONFIG } from "../config.js";
+import { isUrl } from "../target.js";
 import { renderHumanReport } from "../report/human.js";
 import { renderAgentReport } from "../report/agent.js";
 import type { Finding } from "../checks/types.js";
@@ -37,14 +38,22 @@ export interface CheckOptions {
 
 /** Build the check result for a page without rendering it (used by the CLI, walkthrough, and UI). */
 export async function check(path: string, options: CheckOptions): Promise<CheckOutput> {
-  // Page intent and "your call" acceptances are optional context, read from the
-  // project dir. Both fall back to empty/undefined, so they never fail a check.
-  const projectDir = await projectDirOf(path);
-  const [intent, config] = await Promise.all([loadIntent(projectDir), loadConfig(projectDir)]);
+  // A live URL has no local project dir, so intent / accept / toggles don't
+  // apply — the page is scored read-only (FR-1's URL path; decision-log #29).
+  // A local build reads that optional context from its project dir; both fall
+  // back to empty/undefined, so they never fail a check.
+  const readOnly = isUrl(path);
+  const [intent, config] = readOnly
+    ? [undefined, DEFAULT_CONFIG]
+    : await (async () => {
+        const projectDir = await projectDirOf(path);
+        return Promise.all([loadIntent(projectDir), loadConfig(projectDir)]);
+      })();
   const accept = config.accept ?? {};
   const ruleToggles = config.rules ?? {};
   const categoryToggles = config.categories ?? {};
   const context = {
+    ...(readOnly ? { readOnly } : {}),
     ...(intent ? { intent } : {}),
     ...(Object.keys(accept).length > 0 ? { accept } : {}),
   };

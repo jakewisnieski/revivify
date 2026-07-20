@@ -3,6 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import lighthouse from "lighthouse";
 import * as chromeLauncher from "chrome-launcher";
+import { isUrl } from "../target.js";
 
 /** A single Lighthouse audit, normalized to what Revivify needs. */
 export interface LighthouseAudit {
@@ -93,9 +94,35 @@ async function resolveSite(inputPath: string): Promise<{ dir: string; entry: str
   return info.isDirectory() ? { dir: abs, entry: "index.html" } : { dir: dirname(abs), entry: basename(abs) };
 }
 
+/** What Lighthouse should load, plus how to clean up afterward. */
+interface AuditTarget {
+  /** The URL Lighthouse audits. */
+  url: string;
+  /** Tear down anything we started (the loopback server) — a no-op for a live URL. */
+  close: () => Promise<void>;
+}
+
 /**
- * Run Lighthouse against a local landing page and return the normalized report.
- * Serves the page over loopback HTTP, drives headless Chrome, then cleans up.
+ * Decide what Lighthouse loads for a target.
+ *
+ * A **live URL** is audited directly — Lighthouse points straight at it, so
+ * there's nothing to serve and nothing to clean up (FR-1's URL path). A **local**
+ * build is served over loopback (Lighthouse rejects `file://`) and the returned
+ * `close` shuts that server down.
+ */
+export async function prepareAuditTarget(input: string): Promise<AuditTarget> {
+  if (isUrl(input)) {
+    return { url: input.trim(), close: async () => undefined };
+  }
+  const { dir, entry } = await resolveSite(input);
+  const server = await serveDirectory(dir);
+  return { url: `${server.origin}/${entry}`, close: server.close };
+}
+
+/**
+ * Run Lighthouse against a landing page (a local build or a live URL) and return
+ * the normalized report. A local build is served over loopback HTTP; a URL is
+ * audited directly. Drives headless Chrome, then cleans up.
  */
 export async function runLighthouse(
   inputPath: string,
@@ -104,9 +131,8 @@ export async function runLighthouse(
   const progress = options.onProgress ?? (() => undefined);
 
   progress({ phase: "prepare", message: "Preparing your page…" });
-  const { dir, entry } = await resolveSite(inputPath);
-  const server = await serveDirectory(dir);
-  const url = `${server.origin}/${entry}`;
+  const target = await prepareAuditTarget(inputPath);
+  const url = target.url;
 
   progress({ phase: "chrome", message: "Launching a headless Chrome browser…" });
   const chrome = await chromeLauncher.launch({
@@ -147,6 +173,6 @@ export async function runLighthouse(
     } catch {
       /* ignore Chrome cleanup errors */
     }
-    await server.close();
+    await target.close();
   }
 }

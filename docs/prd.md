@@ -119,7 +119,7 @@ Four pillars implement one tiny lifecycle: **goal → build-with-guardrails → 
 ### 8.3 Out of scope (for now)
 - Tier-3 roadmap rules; additional domain packs beyond landing pages.
 - Non-Claude agent adapters; v0/Lovable adapter; MCP server.
-- Hosted service / dashboard / auth / billing.
+- **Hosted self-serve scanning** — reframed as a **planned Phase-2 direction** (deferred, not rejected — see [decision-log #28](decision-log.md)); its dashboard / auth / billing and hosted-path security (SSRF+) layers stay out of scope until that phase. M6 wires **URL input** (FR-1) into the existing *local* cockpit only, with the design critique served from a local vision model (decision-log #28–#31).
 
 ## 9. Functional requirements
 

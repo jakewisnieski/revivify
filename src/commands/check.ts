@@ -44,7 +44,7 @@ export async function check(path: string, options: CheckOptions): Promise<CheckO
   // back to empty/undefined, so they never fail a check.
   const readOnly = isUrl(path);
   const [intent, config] = readOnly
-    ? [undefined, DEFAULT_CONFIG]
+    ? [undefined, { ...DEFAULT_CONFIG }]
     : await (async () => {
         const projectDir = await projectDirOf(path);
         return Promise.all([loadIntent(projectDir), loadConfig(projectDir)]);

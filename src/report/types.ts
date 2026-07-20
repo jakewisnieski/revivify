@@ -16,6 +16,13 @@ export interface CheckOutput {
   disabled?: Finding[];
   /** Lighthouse category scores (0–1), present only in full mode. */
   categories?: Record<string, number | null>;
+  /**
+   * True when the target is a live URL: the page can be scored but fixes,
+   * intent, and accept are read-only — there's no local project to write to
+   * (FR-1's URL path; decision-log #29). The cockpit uses this to disable the
+   * write actions with a plain reason.
+   */
+  readOnly?: boolean;
   /** Captured page intent from `.revivify/intent.md`, when the human wrote one. */
   intent?: string;
   /**

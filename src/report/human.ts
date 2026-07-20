@@ -51,9 +51,11 @@ export function renderHumanReport(output: CheckOutput): string {
     if (line) lines.push(line);
   }
   lines.push(
-    output.intent
-      ? `  Intent noted (${INTENT_FILENAME}).`
-      : `  Tip: add ${INTENT_FILENAME} so deliberate choices aren't flagged as mistakes.`,
+    output.readOnly
+      ? `  Live URL — read-only: Revivify scores the page but can't write fixes, intent, or acceptances to a site it doesn't own.`
+      : output.intent
+        ? `  Intent noted (${INTENT_FILENAME}).`
+        : `  Tip: add ${INTENT_FILENAME} so deliberate choices aren't flagged as mistakes.`,
   );
   lines.push("");
 
@@ -91,7 +93,11 @@ export function renderHumanReport(output: CheckOutput): string {
         if (f) lines.push(`      ${f.detail}`);
         if (f?.fix) lines.push(`      → ${f.fix}`);
         if (f) lines.push(`      Learn more: ${f.learnMore}`);
-        lines.push(`      This one's your call: fix it, or accept it with a reason in ${CONFIG_FILENAME} (accept:).`);
+        lines.push(
+          output.readOnly
+            ? `      This one's your call — settle it on your local project (a live URL has no ${CONFIG_FILENAME} to record an acceptance in).`
+            : `      This one's your call: fix it, or accept it with a reason in ${CONFIG_FILENAME} (accept:).`,
+        );
       }
       lines.push("");
     }
@@ -116,16 +122,33 @@ export function renderHumanReport(output: CheckOutput): string {
   // is decided individually and never auto-applied).
   const fixable = findings.filter((f) => f.triage === "well-fix-it" && f.verdict === "fail");
   if (fixable.length > 0 || unresolved.length > 0) {
-    lines.push("  My plan — approve in one step:");
-    if (fixable.length > 0) {
-      lines.push(
-        `    • I can safely fix the ${fixable.length} "we'll fix it" ${plural(fixable.length, "check")} above (the → items) in one batch, then re-check. Want me to?`,
-      );
-    }
-    if (unresolved.length > 0) {
-      lines.push(
-        `    • The ${unresolved.length} "your call" ${plural(unresolved.length, "item")} ${unresolved.length === 1 ? "is" : "are"} yours to settle — I won't touch ${unresolved.length === 1 ? "it" : "them"}. Fix, or accept with a reason.`,
-      );
+    if (output.readOnly) {
+      // On a live URL there's nothing local to write to, so we don't offer to
+      // apply the batch — we point back to a local build (FR-1's URL path).
+      lines.push("  Read-only — this is a live URL:");
+      if (fixable.length > 0) {
+        const one = fixable.length === 1;
+        lines.push(
+          `    • The ${fixable.length} "we'll fix it" ${plural(fixable.length, "check")} above ${one ? "is a safe, mechanical fix" : "are safe, mechanical fixes"} — but Revivify can't write to a site it doesn't own. Run it on your local build to apply ${one ? "it" : "them"}.`,
+        );
+      }
+      if (unresolved.length > 0) {
+        lines.push(
+          `    • The ${unresolved.length} "your call" ${plural(unresolved.length, "item")} ${unresolved.length === 1 ? "is" : "are"} yours to settle on your local project.`,
+        );
+      }
+    } else {
+      lines.push("  My plan — approve in one step:");
+      if (fixable.length > 0) {
+        lines.push(
+          `    • I can safely fix the ${fixable.length} "we'll fix it" ${plural(fixable.length, "check")} above (the → items) in one batch, then re-check. Want me to?`,
+        );
+      }
+      if (unresolved.length > 0) {
+        lines.push(
+          `    • The ${unresolved.length} "your call" ${plural(unresolved.length, "item")} ${unresolved.length === 1 ? "is" : "are"} yours to settle — I won't touch ${unresolved.length === 1 ? "it" : "them"}. Fix, or accept with a reason.`,
+        );
+      }
     }
     lines.push("");
   }

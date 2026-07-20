@@ -44,3 +44,21 @@ test("check leaves intent/accept unset when the project has neither (they stay o
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("check on a URL is read-only: scores the page but carries no project context (fast mode)", async () => {
+  const real = globalThis.fetch;
+  globalThis.fetch = (async () =>
+    new Response(HTML, { status: 200, headers: { "content-type": "text/html" } })) as typeof fetch;
+  try {
+    const out = await check("https://example.com/landing", { mode: "fast" });
+    assert.equal(out.readOnly, true);
+    assert.equal(out.path, "https://example.com/landing");
+    assert.equal(out.intent, undefined);
+    assert.equal(out.accept, undefined);
+    // The deterministic score is still produced from the checks.
+    assert.ok(out.score);
+    assert.equal(typeof out.score.outOfTen, "number");
+  } finally {
+    globalThis.fetch = real;
+  }
+});

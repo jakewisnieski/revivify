@@ -13,12 +13,13 @@ Usage:
                                    .revivify/, and a CLAUDE.md pointer (only if none
                                    exists). path defaults to the current directory;
                                    --force regenerates the Revivify-owned files.
-  revivify check [path] [--fast]   Check a landing page against citable best practices.
-                                   path: an .html file or a folder containing index.html
-                                   (defaults to the current directory).
-  revivify ui [path]               Open the visual cockpit in your browser and watch
-                                   the audit happen live.
-  revivify gate [path]             Run the "done" gate: check the page and, per
+  revivify check [target] [--fast] Check a landing page against citable best practices.
+                                   target: an .html file, a folder containing index.html,
+                                   or an http(s):// URL (defaults to the current directory).
+                                   On a URL, fixes/intent/accept are read-only.
+  revivify ui [target]             Open the visual cockpit in your browser and watch
+                                   the audit happen live. target may be a local path or URL.
+  revivify gate [target]           Run the "done" gate: check the page and, per
                                    .revivify.yaml, nudge (warn) or block until the
                                    score clears the bar. This is what the installed
                                    Claude Code Stop hook calls.
@@ -74,9 +75,23 @@ async function main(): Promise<number> {
   return 2;
 }
 
+/**
+ * Set the exit code and let the event loop drain on its own, forcing the exit
+ * only if something is still keeping it alive.
+ *
+ * Draining first avoids a Windows libuv assertion that fires when `process.exit`
+ * races undici's socket teardown on the URL (fetch) path. The unref'd fallback
+ * still guarantees we exit even if a lingering handle — e.g. headless Chrome
+ * after a full audit — would otherwise hang the process.
+ */
+function exitWhenDrained(code: number): void {
+  process.exitCode = code;
+  setTimeout(() => process.exit(code), 250).unref();
+}
+
 main()
-  .then((code) => process.exit(code))
+  .then((code) => exitWhenDrained(code))
   .catch((err: unknown) => {
     process.stderr.write(`\n✖ ${err instanceof Error ? err.message : String(err)}\n`);
-    process.exit(2);
+    exitWhenDrained(2);
   });

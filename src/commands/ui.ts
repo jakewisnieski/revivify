@@ -5,7 +5,12 @@ import { spawn } from "node:child_process";
 import { check, projectDirOf } from "./check.js";
 import { upsertAccept } from "../config.js";
 import { applySafeFixes } from "../fix/applyFixes.js";
+import { isUrl } from "../target.js";
 import type { ProgressEvent } from "../engine/lighthouse.js";
+
+/** The read-only reason shown when a write action is attempted on a live URL. */
+const READ_ONLY_MESSAGE =
+  "This is a live URL — Revivify can't write to a site it doesn't own. Point it at a local build to apply fixes or record acceptances.";
 
 const WEB_DIR = resolve(import.meta.dirname, "..", "..", "web");
 const DEFAULT_PORT = Number(process.env.REVIVIFY_UI_PORT ?? 4123);
@@ -106,12 +111,18 @@ export async function runUi(initialPath: string): Promise<number> {
           id?: string;
           reason?: string;
         };
+        const target = path?.trim() || initialPath;
+        if (isUrl(target)) {
+          res.writeHead(409, { "content-type": "application/json" });
+          res.end(JSON.stringify({ error: READ_ONLY_MESSAGE, readOnly: true }));
+          return;
+        }
         if (!id || !reason || !reason.trim()) {
           res.writeHead(400, { "content-type": "application/json" });
           res.end(JSON.stringify({ error: "An acceptance needs a reason." }));
           return;
         }
-        const dir = await projectDirOf(path?.trim() || initialPath);
+        const dir = await projectDirOf(target);
         await upsertAccept(dir, id, reason);
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ ok: true }));
@@ -129,7 +140,13 @@ export async function runUi(initialPath: string): Promise<number> {
     if (url.pathname === "/api/fix" && req.method === "POST") {
       try {
         const { path } = JSON.parse(await readBody(req)) as { path?: string };
-        const result = await applySafeFixes(path?.trim() || initialPath);
+        const target = path?.trim() || initialPath;
+        if (isUrl(target)) {
+          res.writeHead(409, { "content-type": "application/json" });
+          res.end(JSON.stringify({ error: READ_ONLY_MESSAGE, readOnly: true }));
+          return;
+        }
+        const result = await applySafeFixes(target);
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify(result));
       } catch (err) {

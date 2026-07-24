@@ -167,6 +167,30 @@ code { background: var(--panel-2); padding: 1px 6px; border-radius: 6px; font-si
 .rule-accepted { margin-top: 7px; font-size: 14px; color: var(--muted); font-style: italic; }
 .rule-hint { margin-top: 6px; font-size: 13px; color: var(--muted); }
 
+/* Design-advisory panel (M6.4) — the advisory ceiling. Violet/muted framing,
+   NEVER green (green is reserved for pass/go) and no pass/fail marks, so it can't
+   read as part of the score (decision #31 / #11). */
+.card.design { border-color: var(--accent); background: linear-gradient(180deg, rgba(139,124,246,0.05), transparent); }
+.design-blurb { margin: 0 0 14px; font-size: 14px; }
+.design-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.design-actions-note { font-size: 13px; }
+.design-loading { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; margin-top: 16px; }
+.design-group { margin-top: 18px; }
+.design-group-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.tier-chip { display: inline-block; padding: 2px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.tier-chip.t1 { background: rgba(139,124,246,0.20); color: var(--accent); }
+.tier-chip.t2 { background: rgba(139,124,246,0.12); color: var(--accent); }
+.tier-chip.t3 { background: rgba(159,177,167,0.16); color: var(--muted); }
+.design-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.design-list li { padding: 11px 4px; border-top: 1px solid var(--line); }
+.design-list li:first-child { border-top: 0; }
+.design-item-title { font-weight: 600; }
+.design-cite { color: var(--muted); font-size: 13px; }
+.design-item-detail { margin-top: 5px; font-size: 14px; color: var(--ink); }
+.design-unavailable { margin-top: 16px; font-size: 14px; }
+.design-disclaimer { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; }
+.design-model { margin-top: 8px; font-size: 12px; }
+
 /* Accept a "your call" right in the cockpit (M4.6) — violet action affordance */
 .yc-accept { margin-top: 10px; }
 .accept-btn {

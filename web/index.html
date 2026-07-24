@@ -80,6 +80,21 @@
           <h2>The checks <span id="checks-count" class="muted"></span></h2>
           <ul id="rules" class="rules"></ul>
         </div>
+
+        <!-- Design suggestions — the advisory ceiling. Separate from the dial and
+             the pass/fail checks: never scored, never a gate (decision #31). -->
+        <div id="design-card" class="card design hidden">
+          <h2>Design suggestions <span class="muted">— advisory · your call · never part of the score</span></h2>
+          <p class="design-blurb muted">
+            A grounded second opinion on the visual design, from a local vision model. It’s the
+            <em>ceiling</em>, not the floor — advisory only, and never moves the trust dial above.
+          </p>
+          <div class="design-actions">
+            <button id="design-run" type="button">Get design suggestions</button>
+            <span class="design-actions-note muted">Runs a vision model — can take ~30–60s.</span>
+          </div>
+          <div id="design-body"></div>
+        </div>
       </section>
     </main>
 

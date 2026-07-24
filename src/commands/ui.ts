@@ -6,6 +6,10 @@ import { check, projectDirOf } from "./check.js";
 import { upsertAccept } from "../config.js";
 import { applySafeFixes } from "../fix/applyFixes.js";
 import { isUrl } from "../target.js";
+import { capturePage } from "../design/measure.js";
+import { critique } from "../design/critique.js";
+import { buildDesignPanel } from "../design/panel.js";
+import { loadPage } from "../loadPage.js";
 import type { ProgressEvent } from "../engine/lighthouse.js";
 
 /** The read-only reason shown when a write action is attempted on a live URL. */
@@ -129,6 +133,35 @@ export async function runUi(initialPath: string): Promise<number> {
       } catch (err) {
         res.writeHead(500, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }));
+      }
+      return;
+    }
+
+    // The advisory design layer (M6.4): capture the page, ask the grounded critique
+    // service, and return the tier-labeled panel view-model. It's a SEPARATE data
+    // path from the score (#31) — nothing here can move the trust dial. It's slow
+    // (~30–60s, availability-gated) and opt-in, so it never blocks the fast check.
+    // A Chrome or model failure returns a clean "unavailable" panel (HTTP 200, never
+    // an error) so the deterministic gate is provably unaffected. Writes nothing, so
+    // it works the same on a local build or a live URL.
+    if (url.pathname === "/api/design") {
+      const path = url.searchParams.get("path")?.trim() || initialPath;
+      res.writeHead(200, { "content-type": "application/json" });
+      try {
+        // Resolve the target the same way the checks do (a dir → its index.html, a
+        // URL validated as reachable HTML) so the vision capture sees a real page.
+        const { path: pagePath } = await loadPage(path);
+        const capture = await capturePage(pagePath);
+        const advisory = await critique(capture);
+        res.end(JSON.stringify(buildDesignPanel(advisory)));
+      } catch (err) {
+        // Capturing the page failed (e.g. headless Chrome couldn't launch) — degrade
+        // exactly like a down model: an unavailable panel, the gate untouched.
+        res.end(
+          JSON.stringify(
+            buildDesignPanel({ status: "unavailable", reason: err instanceof Error ? err.message : String(err) }),
+          ),
+        );
       }
       return;
     }

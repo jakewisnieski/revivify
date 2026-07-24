@@ -37,3 +37,4 @@ When you can tick every box on the guide's checklist, the milestone is accepted.
 | **M3 — init + hook** | [`m3-init-and-hook.md`](m3-init-and-hook.md) | `revivify init` drops the guardrails up front + installs a Stop hook that gates "done" automatically |
 | **M4 — check UX** | [`m4.md`](m4.md) | Intent read back, three-way triage, accept a "your call" **in the cockpit**, and per-finding cite→teach→verify |
 | **M5 — demo + polish** | [`m5.md`](m5.md) | A realistic "looks done, fails silently" demo, the cockpit hero GIF, honest config toggles, and a locked "done" gate — a shareable, demonstrable product |
+| **M6 — URL input + design layer** | [`m6.md`](m6.md) | Paste a live URL for the trust score (read-only), plus a grounded, tier-labeled **design-advisory panel** that's advisory-only and provably never touches the dial |

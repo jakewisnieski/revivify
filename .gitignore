@@ -27,3 +27,6 @@ coverage/
 
 # Design-critique prototype output (generated screenshots)
 prototypes/*.png
+
+# Local scratch / throwaway test infra (e.g. the token-gated Ollama proxy)
+scratch/
